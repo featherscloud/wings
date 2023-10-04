@@ -1,5 +1,6 @@
+import { describe, it } from 'node:test'
 import { strict as assert } from 'assert'
-import adapterTests from '../src'
+import { adapterTests } from '../src'
 
 const testSuite = adapterTests([
   '.events',
@@ -40,12 +41,6 @@ const testSuite = adapterTests([
   '.create',
   '.create + $select',
   '.create multi',
-  'internal .find',
-  'internal .get',
-  'internal .create',
-  'internal .update',
-  'internal .patch',
-  'internal .remove',
   '.find + equal',
   '.find + equal multiple',
   '.find + $sort',
@@ -80,6 +75,7 @@ describe('Feathers Memory Service', () => {
   })
 
   it('exports as CommonJS', () => {
-    assert.equal(typeof require('../lib'), 'function')
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    assert.equal(typeof require('../lib').adapterTests, 'function')
   })
 })

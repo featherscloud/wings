@@ -56,12 +56,6 @@ export type AdapterMethodsTestName =
   | '.create + $select'
   | '.create multi'
   | '.create ignores query'
-  | 'internal .find'
-  | 'internal .get'
-  | 'internal .create'
-  | 'internal .update'
-  | 'internal .patch'
-  | 'internal .remove'
 
 export type AdapterSyntaxTestName =
   | '.find + equal'

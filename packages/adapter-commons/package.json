@@ -1,6 +1,6 @@
 {
   "name": "@wingshq/adapter-commons",
-  "version": "5.0.8",
+  "version": "0.0.0",
   "description": "Wings shared database adapter utility functions",
   "homepage": "https://wings.codes",
   "keywords": [
@@ -26,40 +26,42 @@
     "url": "https://github.com/wingshq/wings/issues"
   },
   "engines": {
-    "node": ">= 12"
+    "node": ">= 20"
   },
-  "main": "lib/",
-  "types": "lib/",
+  "module": "./esm/index.js",
+  "main": "./lib/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./lib/index.js",
+      "types": "./src/index.ts"
+    }
+  },
   "scripts": {
     "prepublish": "npm run compile",
-    "pack": "npm pack --pack-destination ../generators/test/build",
-    "compile": "shx rm -rf lib/ && tsc && npm run pack",
-    "test": "mocha --config ../../.mocharc.json --recursive test/**.test.ts test/**/*.test.ts"
-  },
-  "directories": {
-    "lib": "lib"
+    "compile:lib": "shx rm -rf lib/ && tsc --module commonjs",
+    "compile:esm": "shx rm -rf esm/ && tsc --module es2020 --outDir esm",
+    "compile": "npm run compile:lib && npm run compile:esm",
+    "test": "npm run compile && node --require ts-node/register --test test/**.test.ts"
   },
   "files": [
     "CHANGELOG.md",
     "LICENSE",
     "README.md",
     "src/**",
-    "lib/**"
+    "lib/**",
+    "esm/**"
   ],
   "publishConfig": {
     "access": "public"
   },
   "dependencies": {
     "@feathersjs/commons": "^5.0.8",
-    "@feathersjs/errors": "^5.0.8",
-    "@feathersjs/feathers": "^5.0.8"
+    "@feathersjs/errors": "^5.0.8"
   },
   "devDependencies": {
-    "@types/mocha": "^10.0.1",
-    "@types/mongodb": "^4.0.6",
     "@types/node": "^20.4.2",
-    "mocha": "^10.2.0",
-    "mongodb": "^5.7.0",
     "shx": "^0.3.4",
     "ts-node": "^10.9.1",
     "typescript": "^5.1.6"

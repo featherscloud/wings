@@ -1,4 +1,5 @@
 /* eslint-disable no-console */
+import { describe, it } from 'node:test'
 import basicTests from './basic'
 import { AdapterTestName } from './declarations'
 import methodTests from './methods'
@@ -49,9 +50,3 @@ export const adapterTests = (testNames: AdapterTestName[]) => {
 }
 
 export * from './declarations'
-
-export default adapterTests
-
-if (typeof module !== 'undefined') {
-  module.exports = Object.assign(adapterTests, module.exports)
-}

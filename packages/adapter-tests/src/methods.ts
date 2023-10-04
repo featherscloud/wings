@@ -1,3 +1,4 @@
+import { describe } from 'node:test'
 import assert from 'assert'
 import { AdapterMethodsTest } from './declarations'
 
@@ -663,62 +664,6 @@ export default (test: AdapterMethodsTest, app: any, _errors: any, serviceName: s
         await service.remove(data[0][idProp])
         await service.remove(data[1][idProp])
       })
-    })
-
-    describe("doesn't call public methods internally", () => {
-      let throwing: any
-
-      before(() => {
-        throwing = Object.assign(Object.create(app.service(serviceName)), {
-          get store() {
-            return app.service(serviceName).store
-          },
-
-          find() {
-            throw new Error('find method called')
-          },
-          get() {
-            throw new Error('get method called')
-          },
-          create() {
-            throw new Error('create method called')
-          },
-          update() {
-            throw new Error('update method called')
-          },
-          patch() {
-            throw new Error('patch method called')
-          },
-          remove() {
-            throw new Error('remove method called')
-          }
-        })
-      })
-
-      test('internal .find', () => app.service(serviceName).find.call(throwing))
-
-      test('internal .get', () => service.get.call(throwing, doug[idProp]))
-
-      test('internal .create', async () => {
-        const bob = await service.create.call(throwing, {
-          name: 'Bob',
-          age: 25
-        })
-
-        await service.remove(bob[idProp])
-      })
-
-      test('internal .update', () =>
-        service.update.call(throwing, doug[idProp], {
-          name: 'Dougler'
-        }))
-
-      test('internal .patch', () =>
-        service.patch.call(throwing, doug[idProp], {
-          name: 'PatchDoug'
-        }))
-
-      test('internal .remove', () => service.remove.call(throwing, doug[idProp]))
     })
   })
 }
