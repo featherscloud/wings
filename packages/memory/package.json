@@ -51,7 +51,7 @@
     "lib": "lib"
   },
   "dependencies": {
-    "@wingshq/adapter-commons": "^5.0.8",
+    "@wingshq/adapter-commons": "^0.0.0",
     "@feathersjs/commons": "^5.0.8",
     "@feathersjs/errors": "^5.0.8",
     "sift": "^17.0.1"
