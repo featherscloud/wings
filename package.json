@@ -23,7 +23,8 @@
     "node": ">= 14"
   },
   "workspaces": [
-    "packages/*"
+    "packages/*",
+    "docs/*"
   ],
   "scripts": {
     "publish": "lerna publish --force-publish && git commit -am \"chore: Update changelog\" && git push origin",
