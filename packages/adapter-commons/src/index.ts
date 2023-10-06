@@ -1,15 +1,12 @@
 import { _ } from '@feathersjs/commons'
-import { Params } from '@feathersjs/feathers'
 
 export * from './declarations'
-export * from './service'
-export * from './query'
 export * from './sort'
 
 // Return a function that filters a result object or array
 // and picks only the fields passed as `params.query.$select`
 // and additional `otherFields`
-export function select(params: Params, ...otherFields: string[]) {
+export function select(params: any, ...otherFields: string[]) {
   const queryFields: string[] | undefined = params?.query?.$select
 
   if (!queryFields) {

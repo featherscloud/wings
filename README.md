@@ -1,6 +1,4 @@
-<a href="https://feathersjs.com" title="FeathersJS">
-  <img src="https://feathersjs.com/og.png" alt="Feathers - The API and real-time application framework">
-</a>
+# Wings
 
 ---
 
@@ -10,43 +8,7 @@
 [![Download Status](https://img.shields.io/npm/dm/@feathersjs/feathers.svg?style=flat-square)](https://www.npmjs.com/package/@feathersjs/feathers)
 [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/qa8kez8QBx)
 
-Feathers is a full-stack framework for creating web APIs and real-time applications with TypeScript or JavaScript.
-
-Feathers can interact with any backend technology, supports many databases out of the box and works with any frontend like React, VueJS, Angular, React Native, Android or iOS.
-
-# Getting started
-
-Get started with just three commands:
-
-```bash
-npm create feathers my-new-app
-cd my-new-app
-npm run dev
-```
-
-To learn more about Feathers visit the website at [feathersjs.com](http://feathersjs.com) or jump right into [the Feathers guides](https://feathersjs.com/guides/).
-
-# Contributing
-
-To start developing, clone this repository, then run:
-
-```bash
-cd feathers
-npm install
-```
-
-To run all tests run
-
-```bash
-npm test
-```
-
-Individual tests can be run in the module you are working on:
-
-```bash
-cd packages/feathers
-npm test
-```
+Wings allows integrating different databases through a unified interface into any TypeScript or JavaScript application.
 
 # License
 

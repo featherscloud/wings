@@ -1,24 +1,28 @@
+import { describe, beforeEach, afterEach } from 'node:test'
 import assert from 'assert'
-import { AdapterSyntaxTest } from './declarations'
+import { AdapterSyntaxTest, Person } from './declarations'
+import { AdapterInterface } from '@wingshq/adapter-commons'
 
-export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: string, idProp: string) => {
+export default function <Service extends AdapterInterface<Person>>(
+  test: AdapterSyntaxTest,
+  service: Service,
+  idProp: string
+) {
   describe('Query Syntax', () => {
-    let bob: any
-    let alice: any
-    let doug: any
-    let service: any
+    let bob: Person
+    let alice: Person
+    let doug: Person
 
     beforeEach(async () => {
-      service = app.service(serviceName)
-      bob = await app.service(serviceName).create({
+      bob = await service.create({
         name: 'Bob',
         age: 25
       })
-      doug = await app.service(serviceName).create({
+      doug = await service.create({
         name: 'Doug',
         age: 32
       })
-      alice = await app.service(serviceName).create({
+      alice = await service.create({
         name: 'Alice',
         age: 19
       })
@@ -41,7 +45,8 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
     test('.find + equal multiple', async () => {
       const data = await service.find({
-        query: { name: 'Alice', age: 20 }
+        query: { name: 'Alice', age: 20 },
+        paginate: false
       })
 
       assert.strictEqual(data.length, 0)
@@ -50,6 +55,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
     describe('special filters', () => {
       test('.find + $sort', async () => {
         let data = await service.find({
+          paginate: false,
           query: {
             $sort: { name: 1 }
           }
@@ -61,6 +67,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
         assert.strictEqual(data[2].name, 'Doug')
 
         data = await service.find({
+          paginate: false,
           query: {
             $sort: { name: -1 }
           }
@@ -72,21 +79,9 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
         assert.strictEqual(data[2].name, 'Alice')
       })
 
-      test('.find + $sort + string', async () => {
-        const data = await service.find({
-          query: {
-            $sort: { name: '1' }
-          }
-        })
-
-        assert.strictEqual(data.length, 3)
-        assert.strictEqual(data[0].name, 'Alice')
-        assert.strictEqual(data[1].name, 'Bob')
-        assert.strictEqual(data[2].name, 'Doug')
-      })
-
       test('.find + $limit', async () => {
         const data = await service.find({
+          paginate: false,
           query: {
             $limit: 2
           }
@@ -97,6 +92,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
       test('.find + $limit 0', async () => {
         const data = await service.find({
+          paginate: false,
           query: {
             $limit: 0
           }
@@ -107,6 +103,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
       test('.find + $skip', async () => {
         const data = await service.find({
+          paginate: false,
           query: {
             $sort: { name: 1 },
             $skip: 1
@@ -120,6 +117,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
       test('.find + $select', async () => {
         const data = await service.find({
+          paginate: false,
           query: {
             name: 'Alice',
             $select: ['name']
@@ -211,6 +209,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
       test('.find + $gte', async () => {
         const data = await service.find({
+          paginate: false,
           query: {
             age: {
               $gte: 25
@@ -223,6 +222,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
       test('.find + $ne', async () => {
         const data = await service.find({
+          paginate: false,
           query: {
             age: {
               $ne: 25
@@ -243,7 +243,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
           },
           $sort: { name: 1 }
         }
-      }
+      } as const
 
       const data = await service.find(params)
 
@@ -254,6 +254,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
     test('.find + $or nested + $sort', async () => {
       const params = {
+        paginate: false,
         query: {
           $or: [
             { name: 'Doug' },
@@ -266,7 +267,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
           ],
           $sort: { name: 1 }
         }
-      }
+      } as const
 
       const data = await service.find(params)
 
@@ -277,11 +278,12 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
     test('.find + $and', async () => {
       const params = {
+        paginate: false,
         query: {
           $and: [{ age: 19 }],
           $sort: { name: 1 }
         }
-      }
+      } as const
 
       const data = await service.find(params)
 
@@ -291,11 +293,12 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
     test('.find + $and + $or', async () => {
       const params = {
+        paginate: false,
         query: {
           $and: [{ $or: [{ name: 'Alice' }] }],
           $sort: { name: 1 }
         }
-      }
+      } as const
 
       const data = await service.find(params)
 
@@ -303,61 +306,14 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
       assert.strictEqual(data[0].name, 'Alice')
     })
 
-    describe('params.adapter', () => {
-      test('params.adapter + paginate', async () => {
-        const page = await service.find({
-          adapter: {
-            paginate: { default: 3 }
-          }
-        })
-
-        assert.strictEqual(page.limit, 3)
-        assert.strictEqual(page.skip, 0)
-      })
-
-      test('params.adapter + multi', async () => {
-        const items = [
-          {
-            name: 'Garald',
-            age: 200
-          },
-          {
-            name: 'Harald',
-            age: 24
-          }
-        ]
-        const multiParams = {
-          adapter: {
-            multi: ['create']
-          }
-        }
-        const users = await service.create(items, multiParams)
-
-        assert.strictEqual(users.length, 2)
-
-        await service.remove(users[0][idProp])
-        await service.remove(users[1][idProp])
-        await assert.rejects(() => service.patch(null, { age: 2 }, multiParams), {
-          message: 'Can not patch multiple entries'
-        })
-      })
-    })
-
     describe('paginate', function () {
-      beforeEach(() => {
-        service.options.paginate = {
-          default: 1,
-          max: 2
-        }
-      })
-
-      afterEach(() => {
-        service.options.paginate = {}
-      })
-
       test('.find + paginate', async () => {
         const page = await service.find({
-          query: { $sort: { name: -1 } }
+          paginate: true,
+          query: {
+            $sort: { name: -1 },
+            $limit: 1
+          }
         })
 
         assert.strictEqual(page.total, 3)
@@ -368,8 +324,10 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
       test('.find + paginate + query', async () => {
         const page = await service.find({
+          paginate: true,
           query: {
             $sort: { name: -1 },
+            $limit: 1,
             name: 'Doug'
           }
         })
@@ -382,17 +340,18 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
       test('.find + paginate + $limit + $skip', async () => {
         const params = {
+          paginate: true,
           query: {
             $skip: 1,
             $limit: 4,
             $sort: { name: -1 }
           }
-        }
+        } as const
 
         const page = await service.find(params)
 
         assert.strictEqual(page.total, 3)
-        assert.strictEqual(page.limit, 2)
+        assert.strictEqual(page.limit, 4)
         assert.strictEqual(page.skip, 1)
         assert.strictEqual(page.data[0].name, 'Bob')
         assert.strictEqual(page.data[1].name, 'Alice')
@@ -400,6 +359,7 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
 
       test('.find + paginate + $limit 0', async () => {
         const page = await service.find({
+          paginate: true,
           query: { $limit: 0 }
         })
 
@@ -408,7 +368,12 @@ export default (test: AdapterSyntaxTest, app: any, _errors: any, serviceName: st
       })
 
       test('.find + paginate + params', async () => {
-        const page = await service.find({ paginate: { default: 3 } })
+        const page = await service.find({
+          paginate: true,
+          query: {
+            $limit: 3
+          }
+        })
 
         assert.strictEqual(page.limit, 3)
         assert.strictEqual(page.skip, 0)
