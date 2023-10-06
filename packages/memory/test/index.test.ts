@@ -147,9 +147,11 @@ describe('Wings Memory Adapter', () => {
 
     const otherPerson = await service.get(person.id!)
 
-    assert.strictEqual(otherPerson.age, 33)
-
-    await service.remove(person.id!)
+    try {
+      assert.strictEqual(otherPerson.age, 33)
+    } finally {
+      await service.remove(person.id!)
+    }
   })
 
   it('update with null throws error', async () => {

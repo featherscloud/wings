@@ -93,7 +93,7 @@ export class MemoryAdapter<
 
     const result: Paginated<Result> = {
       total,
-      limit: filters.$limit || -1,
+      limit: filters.$limit !== undefined ? filters.$limit : -1,
       skip: filters.$skip || 0,
       data: values.map((value) => _select(value, params, this.id))
     }
@@ -150,7 +150,10 @@ export class MemoryAdapter<
     // eslint-disable-next-line eqeqeq
     id = oldId == id ? oldId : id
 
-    Model[id] = _.extend({}, data, { [this.id]: id })
+    Model[id] = {
+      ...data,
+      [this.id]: id
+    } as Result
 
     return this.get(id, params)
   }

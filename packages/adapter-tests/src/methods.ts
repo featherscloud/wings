@@ -44,23 +44,27 @@ export default function <Service extends AdapterInterface<Person>>(
       })
 
       test('.get + id + query', async () => {
-        try {
-          await service.get(doug[idProp], {
-            query: { name: 'Tester' }
-          })
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Got a NotFound Feathers error')
-        }
+        await assert.rejects(
+          async () => {
+            await service.get(doug[idProp], {
+              query: { name: 'Tester' }
+            })
+          },
+          {
+            name: 'NotFound'
+          }
+        )
       })
 
       test('.get + NotFound', async () => {
-        try {
-          await service.get('568225fbfe21222432e836ff')
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Error is a NotFound Feathers error')
-        }
+        await assert.rejects(
+          async () => {
+            await service.get('568225fbfe21222432e836ff')
+          },
+          {
+            name: 'NotFound'
+          }
+        )
       })
 
       test('.get + id + query id', async () => {
@@ -70,15 +74,19 @@ export default function <Service extends AdapterInterface<Person>>(
         })
 
         try {
-          await service.get(doug[idProp], {
-            query: { [idProp]: alice[idProp] }
-          })
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Got a NotFound Feathers error')
+          await assert.rejects(
+            async () => {
+              await service.get(doug[idProp], {
+                query: { [idProp]: alice[idProp] }
+              })
+            },
+            {
+              name: 'NotFound'
+            }
+          )
+        } finally {
+          await service.remove(alice[idProp])
         }
-
-        await service.remove(alice[idProp])
       })
     })
 
@@ -109,14 +117,16 @@ export default function <Service extends AdapterInterface<Person>>(
       })
 
       test('.remove + id + query', async () => {
-        try {
-          await service.remove(doug[idProp], {
-            query: { name: 'Tester' }
-          })
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Got a NotFound Feathers error')
-        }
+        await assert.rejects(
+          async () => {
+            await service.remove(doug[idProp], {
+              query: { name: 'Tester' }
+            })
+          },
+          {
+            name: 'NotFound'
+          }
+        )
       })
 
       test('.remove + multi', async () => {
@@ -190,15 +200,19 @@ export default function <Service extends AdapterInterface<Person>>(
         })
 
         try {
-          await service.remove(doug[idProp], {
-            query: { [idProp]: alice[idProp] }
-          })
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Got a NotFound Feathers error')
+          await assert.rejects(
+            async () => {
+              await service.remove(doug[idProp], {
+                query: { [idProp]: alice[idProp] }
+              })
+            },
+            {
+              name: 'NotFound'
+            }
+          )
+        } finally {
+          await service.remove(alice[idProp])
         }
-
-        await service.remove(alice[idProp])
       })
     })
 
@@ -232,44 +246,57 @@ export default function <Service extends AdapterInterface<Person>>(
       })
 
       test('.update + id + query', async () => {
-        try {
-          await service.update(
-            doug[idProp],
-            {
-              name: 'Dougler',
-              age: 0
-            },
-            {
-              query: { name: 'Tester' }
-            }
-          )
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Got a NotFound Feathers error')
-        }
+        await assert.rejects(
+          async () => {
+            await service.update(
+              doug[idProp],
+              {
+                name: 'Dougler',
+                age: 0
+              },
+              {
+                query: { name: 'Tester' }
+              }
+            )
+          },
+          {
+            name: 'NotFound'
+          }
+        )
       })
 
       test('.update + NotFound', async () => {
-        try {
-          await service.update('568225fbfe21222432e836ff', {
-            name: 'NotFound',
-            age: 0
-          })
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Error is a NotFound Feathers error')
-        }
+        await assert.rejects(
+          async () => {
+            await service.update('568225fbfe21222432e836ff', {
+              name: 'NotFound',
+              age: 0
+            })
+          },
+          {
+            name: 'NotFound'
+          }
+        )
       })
 
       test('.update + query + NotFound', async () => {
         const dave = await service.create({ name: 'Dave' })
         try {
-          await service.update(dave[idProp], { name: 'UpdatedDave', age: 0 }, { query: { name: 'NotDave' } })
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Error is a NotFound Feathers error')
+          await assert.rejects(
+            async () => {
+              await service.update(
+                dave[idProp],
+                { name: 'UpdatedDave', age: 0 },
+                { query: { name: 'NotDave' } }
+              )
+            },
+            {
+              name: 'NotFound'
+            }
+          )
+        } finally {
+          await service.remove(dave[idProp])
         }
-        await service.remove(dave[idProp])
       })
 
       test('.update + id + query id', async () => {
@@ -279,22 +306,26 @@ export default function <Service extends AdapterInterface<Person>>(
         })
 
         try {
-          await service.update(
-            doug[idProp],
-            {
-              name: 'Dougler',
-              age: 33
+          await assert.rejects(
+            async () => {
+              await service.update(
+                doug[idProp],
+                {
+                  name: 'Dougler',
+                  age: 33
+                },
+                {
+                  query: { [idProp]: alice[idProp] }
+                }
+              )
             },
             {
-              query: { [idProp]: alice[idProp] }
+              name: 'NotFound'
             }
           )
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Got a NotFound Feathers error')
+        } finally {
+          await service.remove(alice[idProp])
         }
-
-        await service.remove(alice[idProp])
       })
     })
 
@@ -326,20 +357,22 @@ export default function <Service extends AdapterInterface<Person>>(
       })
 
       test('.patch + id + query', async () => {
-        try {
-          await service.patch(
-            doug[idProp],
-            {
-              name: 'id patched doug'
-            },
-            {
-              query: { name: 'Tester' }
-            }
-          )
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Got a NotFound Feathers error')
-        }
+        await assert.rejects(
+          async () => {
+            await service.patch(
+              doug[idProp],
+              {
+                name: 'PatchDoug'
+              },
+              {
+                query: { name: 'Tester' }
+              }
+            )
+          },
+          {
+            name: 'NotFound'
+          }
+        )
       })
 
       test('.patch multiple', async () => {
@@ -357,20 +390,22 @@ export default function <Service extends AdapterInterface<Person>>(
           created: true
         })
 
-        const data = await service.patch(
-          null,
-          {
-            age: 2
-          },
-          params
-        )
+        try {
+          const data = await service.patch(
+            null,
+            {
+              age: 2
+            },
+            params
+          )
 
-        assert.strictEqual(data.length, 2, 'returned two entries')
-        assert.strictEqual(data[0].age, 2, 'First entry age was updated')
-        assert.strictEqual(data[1].age, 2, 'Second entry age was updated')
-
-        await service.remove(dave[idProp])
-        await service.remove(david[idProp])
+          assert.strictEqual(data.length, 2, 'returned two entries')
+          assert.strictEqual(data[0].age, 2, 'First entry age was updated')
+          assert.strictEqual(data[1].age, 2, 'Second entry age was updated')
+        } finally {
+          await service.remove(dave[idProp])
+          await service.remove(david[idProp])
+        }
       })
 
       test('.patch multiple no pagination', async () => {
@@ -432,20 +467,22 @@ export default function <Service extends AdapterInterface<Person>>(
           created: true
         })
 
-        const data = await service.patch(
-          null,
-          {
-            age: 2
-          },
-          params
-        )
+        try {
+          const data = await service.patch(
+            null,
+            {
+              age: 2
+            },
+            params
+          )
 
-        assert.strictEqual(data.length, 2, 'returned two entries')
-        assert.strictEqual(data[0].age, 2, 'First entry age was updated')
-        assert.strictEqual(data[1].age, 2, 'Second entry age was updated')
-
-        await service.remove(dave[idProp])
-        await service.remove(david[idProp])
+          assert.strictEqual(data.length, 2, 'returned two entries')
+          assert.strictEqual(data[0].age, 2, 'First entry age was updated')
+          assert.strictEqual(data[1].age, 2, 'Second entry age was updated')
+        } finally {
+          await service.remove(dave[idProp])
+          await service.remove(david[idProp])
+        }
       })
 
       test('.patch multi query changed', async () => {
@@ -463,42 +500,60 @@ export default function <Service extends AdapterInterface<Person>>(
           created: true
         })
 
-        const data = await service.patch(
-          null,
-          {
-            age: 2
-          },
-          params
-        )
+        try {
+          const data = await service.patch(
+            null,
+            {
+              age: 2
+            },
+            params
+          )
 
-        assert.strictEqual(data.length, 2, 'returned two entries')
-        assert.strictEqual(data[0].age, 2, 'First entry age was updated')
-        assert.strictEqual(data[1].age, 2, 'Second entry age was updated')
-
-        await service.remove(dave[idProp])
-        await service.remove(david[idProp])
+          assert.strictEqual(data.length, 2, 'returned two entries')
+          assert.strictEqual(data[0].age, 2, 'First entry age was updated')
+          assert.strictEqual(data[1].age, 2, 'Second entry age was updated')
+        } finally {
+          await service.remove(dave[idProp])
+          await service.remove(david[idProp])
+        }
       })
 
       test('.patch + NotFound', async () => {
-        try {
-          await service.patch('568225fbfe21222432e836ff', {
-            name: 'PatchDoug'
-          })
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Error is a NotFound Feathers error')
-        }
+        await assert.rejects(
+          async () => {
+            await service.patch('568225fbfe21222432e836ff', {
+              name: 'PatchDoug'
+            })
+          },
+          {
+            name: 'NotFound'
+          }
+        )
       })
 
       test('.patch + query + NotFound', async () => {
         const dave = await service.create({ name: 'Dave' })
+
         try {
-          await service.patch(dave[idProp], { name: 'PatchedDave' }, { query: { name: 'NotDave' } })
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Error is a NotFound Feathers error')
+          await assert.rejects(
+            async () => {
+              await service.patch(
+                dave[idProp],
+                {
+                  name: 'PatchedDave'
+                },
+                {
+                  query: { name: 'NotDave' }
+                }
+              )
+            },
+            {
+              name: 'NotFound'
+            }
+          )
+        } finally {
+          await service.remove(dave[idProp])
         }
-        await service.remove(dave[idProp])
       })
 
       test('.patch + id + query id', async () => {
@@ -508,21 +563,26 @@ export default function <Service extends AdapterInterface<Person>>(
         })
 
         try {
-          await service.patch(
-            doug[idProp],
-            {
-              age: 33
+          await assert.rejects(
+            async () => {
+              await service.patch(
+                doug[idProp],
+                {
+                  name: 'PatchDoug',
+                  age: 33
+                },
+                {
+                  query: { [idProp]: alice[idProp] }
+                }
+              )
             },
             {
-              query: { [idProp]: alice[idProp] }
+              name: 'NotFound'
             }
           )
-          throw new Error('Should never get here')
-        } catch (error: any) {
-          assert.strictEqual(error.name, 'NotFound', 'Got a NotFound Feathers error')
+        } finally {
+          await service.remove(alice[idProp])
         }
-
-        await service.remove(alice[idProp])
       })
     })
 
@@ -590,14 +650,16 @@ export default function <Service extends AdapterInterface<Person>>(
 
         const data = await service.create(items)
 
-        assert.ok(Array.isArray(data), 'data is an array')
-        assert.ok(typeof data[0][idProp] !== 'undefined', 'id is set')
-        assert.strictEqual(data[0].name, 'Gerald', 'first name matches')
-        assert.ok(typeof data[1][idProp] !== 'undefined', 'id is set')
-        assert.strictEqual(data[1].name, 'Herald', 'second name macthes')
-
-        await service.remove(data[0][idProp])
-        await service.remove(data[1][idProp])
+        try {
+          assert.ok(Array.isArray(data), 'data is an array')
+          assert.ok(typeof data[0][idProp] !== 'undefined', 'id is set')
+          assert.strictEqual(data[0].name, 'Gerald', 'first name matches')
+          assert.ok(typeof data[1][idProp] !== 'undefined', 'id is set')
+          assert.strictEqual(data[1].name, 'Herald', 'second name macthes')
+        } finally {
+          await service.remove(data[0][idProp])
+          await service.remove(data[1][idProp])
+        }
       })
     })
   })
