@@ -93,7 +93,7 @@ export class MemoryAdapter<
 
     const result: Paginated<Result> = {
       total,
-      limit: filters.$limit !== undefined ? filters.$limit : -1,
+      limit: filters.$limit !== undefined ? filters.$limit : null,
       skip: filters.$skip || 0,
       data: values.map((value) => _select(value, params, this.id))
     }

@@ -64,17 +64,17 @@ const testSuite = adapterTests([
   '.find + paginate + params'
 ])
 
+type Animal = {
+  id: number
+  type: string
+  age: number
+}
+
 describe('Wings Memory Adapter', () => {
   const service = new MemoryAdapter<Person>()
   const customIdService = new MemoryAdapter<Person>({
     id: 'customid'
   })
-
-  type Animal = {
-    id: number
-    type: string
-    age: number
-  }
 
   it('update with string id works', async () => {
     const person = await service.create({
@@ -215,6 +215,6 @@ describe('Wings Memory Adapter', () => {
     }
   })
 
-  testSuite(service as any, 'id')
-  testSuite(customIdService as any, 'customid')
+  testSuite(service, 'id')
+  testSuite(customIdService, 'customid')
 })

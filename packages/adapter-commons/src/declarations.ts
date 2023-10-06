@@ -15,7 +15,7 @@ export interface AdapterOptions {
   /**
    * The name of the id property
    */
-  id?: string
+  id: string
 }
 
 export type AdapterQuery<O> = {

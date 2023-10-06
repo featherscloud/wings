@@ -4,11 +4,6 @@ import { adapterTests } from '../src'
 
 const testSuite = adapterTests([
   '.get',
-  '.$find',
-  '.$create',
-  '.$update',
-  '.$patch',
-  '.$remove',
   '.get',
   '.get + $select',
   '.get + id + query',

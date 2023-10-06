@@ -13,15 +13,7 @@ export type Person = {
   created?: boolean
 }
 
-export type AdapterBasicTestName =
-  | '.id'
-  | '.options'
-  | '.$get'
-  | '.$find'
-  | '.$create'
-  | '.$update'
-  | '.$patch'
-  | '.$remove'
+export type AdapterBasicTestName = '.id' | '.options'
 
 export type AdapterMethodsTestName =
   | '.get'
