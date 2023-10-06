@@ -3,14 +3,7 @@ import { strict as assert } from 'assert'
 import { adapterTests } from '../src'
 
 const testSuite = adapterTests([
-  '.events',
-  '._get',
-  '._find',
-  '._create',
-  '._update',
-  '._patch',
-  '._remove',
-  '.$get',
+  '.get',
   '.$find',
   '.$create',
   '.$update',
@@ -44,7 +37,6 @@ const testSuite = adapterTests([
   '.find + equal',
   '.find + equal multiple',
   '.find + $sort',
-  '.find + $sort + string',
   '.find + $limit',
   '.find + $limit 0',
   '.find + $skip',

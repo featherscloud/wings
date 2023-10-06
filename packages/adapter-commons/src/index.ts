@@ -1,7 +1,6 @@
 import { _ } from '@feathersjs/commons'
 
 export * from './declarations'
-// export * from './service'
 export * from './sort'
 
 // Return a function that filters a result object or array

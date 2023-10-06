@@ -6,16 +6,16 @@ export type AdapterSyntaxTest = (name: AdapterSyntaxTestName, runner: any) => vo
 
 export type AdapterTestName = AdapterBasicTestName | AdapterMethodsTestName | AdapterSyntaxTestName
 
+export type Person = {
+  [key: string]: any
+  name: string
+  age: number
+  created?: boolean
+}
+
 export type AdapterBasicTestName =
   | '.id'
   | '.options'
-  | '.events'
-  | '._get'
-  | '._find'
-  | '._create'
-  | '._update'
-  | '._patch'
-  | '._remove'
   | '.$get'
   | '.$find'
   | '.$create'
@@ -61,7 +61,6 @@ export type AdapterSyntaxTestName =
   | '.find + equal'
   | '.find + equal multiple'
   | '.find + $sort'
-  | '.find + $sort + string'
   | '.find + $limit'
   | '.find + $limit 0'
   | '.find + $skip'
@@ -78,8 +77,6 @@ export type AdapterSyntaxTestName =
   | '.find + $or nested + $sort'
   | '.find + $and'
   | '.find + $and + $or'
-  | 'params.adapter + paginate'
-  | 'params.adapter + multi'
   | '.find + paginate'
   | '.find + paginate + query'
   | '.find + paginate + $limit + $skip'

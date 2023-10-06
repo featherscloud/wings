@@ -1,19 +1,11 @@
+import { describe, it } from 'node:test'
 import assert from 'assert'
-import adapterTests from '@feathersjs/adapter-tests'
-import errors from '@feathersjs/errors'
-import { feathers } from '@feathersjs/feathers'
+import { adapterTests, Person } from '@wingshq/adapter-tests'
 
-import { MemoryService } from '../src'
+import { MemoryAdapter } from '../src'
 
 const testSuite = adapterTests([
   '.options',
-  '.events',
-  '._get',
-  '._find',
-  '._create',
-  '._update',
-  '._patch',
-  '._remove',
   '.get',
   '.get + $select',
   '.get + id + query',
@@ -21,6 +13,8 @@ const testSuite = adapterTests([
   '.get + id + query id',
   '.find',
   '.find + paginate + query',
+  '.find + $and',
+  '.find + $and + $or',
   '.remove',
   '.remove + $select',
   '.remove + id + query',
@@ -44,18 +38,12 @@ const testSuite = adapterTests([
   '.patch + NotFound',
   '.patch + id + query id',
   '.create',
+  '.create ignores query',
   '.create + $select',
   '.create multi',
-  'internal .find',
-  'internal .get',
-  'internal .create',
-  'internal .update',
-  'internal .patch',
-  'internal .remove',
   '.find + equal',
   '.find + equal multiple',
   '.find + $sort',
-  '.find + $sort + string',
   '.find + $limit',
   '.find + $limit 0',
   '.find + $skip',
@@ -73,57 +61,36 @@ const testSuite = adapterTests([
   '.find + paginate',
   '.find + paginate + $limit + $skip',
   '.find + paginate + $limit 0',
-  '.find + paginate + params',
-  'params.adapter + paginate',
-  'params.adapter + multi'
+  '.find + paginate + params'
 ])
 
-describe('Feathers Memory Service', () => {
-  type Person = {
-    id: number
-    name: string
-    age: number
-  }
+describe('Wings Memory Adapter', () => {
+  const service = new MemoryAdapter<Person>()
+  const customIdService = new MemoryAdapter<Person>({
+    id: 'customid'
+  })
 
   type Animal = {
+    id: number
     type: string
     age: number
   }
 
-  const events = ['testing']
-  const app = feathers<{
-    people: MemoryService<Person>
-    'people-customid': MemoryService<Person>
-    animals: MemoryService<Animal>
-    matcher: MemoryService
-  }>()
-
-  app.use('people', new MemoryService<Person>({ events }))
-  app.use(
-    'people-customid',
-    new MemoryService<Person>({
-      id: 'customid',
-      events
-    })
-  )
-
   it('update with string id works', async () => {
-    const people = app.service('people')
-    const person = await people.create({
+    const person = await service.create({
       name: 'Tester',
       age: 33
     })
 
-    const updatedPerson: any = await people.update(person.id.toString(), person)
+    const updatedPerson = await service.update(person.id.toString(), person)
 
     assert.strictEqual(typeof updatedPerson.id, 'number')
 
-    await people.remove(person.id.toString())
+    await service.remove(person.id!.toString())
   })
 
   it('patch record with prop also in query', async () => {
-    app.use('animals', new MemoryService<Animal>({ multi: true }))
-    const animals = app.service('animals')
+    const animals = new MemoryAdapter<Animal>()
     await animals.create([
       {
         type: 'cat',
@@ -146,26 +113,23 @@ describe('Feathers Memory Service', () => {
     let sorterCalled = false
     let matcherCalled = false
 
-    app.use(
-      'matcher',
-      new MemoryService({
-        matcher() {
-          matcherCalled = true
-          return function () {
-            return true
-          }
-        },
-
-        sorter() {
-          sorterCalled = true
-          return function () {
-            return 0
-          }
+    const service = new MemoryAdapter<Person>({
+      matcher() {
+        matcherCalled = true
+        return function () {
+          return true
         }
-      })
-    )
+      },
 
-    await app.service('matcher').find({
+      sorter() {
+        sorterCalled = true
+        return function () {
+          return 0
+        }
+      }
+    })
+
+    await service.find({
       query: { something: 1, $sort: { something: 1 } }
     })
 
@@ -174,40 +138,33 @@ describe('Feathers Memory Service', () => {
   })
 
   it('does not modify the original data', async () => {
-    const people = app.service('people')
-
-    const person = await people.create({
+    const person = await service.create({
       name: 'Delete tester',
       age: 33
     })
 
-    delete person.age
+    delete (person as any).age
 
-    const otherPerson = await people.get(person.id)
+    const otherPerson = await service.get(person.id!)
 
     assert.strictEqual(otherPerson.age, 33)
 
-    await people.remove(person.id)
+    await service.remove(person.id!)
   })
 
   it('update with null throws error', async () => {
-    try {
-      await app.service('people').update(null, {})
-      throw new Error('Should never get here')
-    } catch (error: any) {
-      assert.strictEqual(error.message, "You can not replace multiple instances. Did you mean 'patch'?")
-    }
+    await assert.rejects(() => service.update(null as any, {}), {
+      message: "You can not replace multiple instances. Did you mean 'patch'?"
+    })
   })
 
   it('use $select as only query property', async () => {
-    const people = app.service('people')
-    const person = await people.create({
+    const person = await service.create({
       name: 'Tester',
       age: 42
     })
 
-    const results = await people.find({
-      paginate: false,
+    const results = await service.find({
       query: {
         $select: ['name']
       }
@@ -215,9 +172,9 @@ describe('Feathers Memory Service', () => {
 
     assert.deepStrictEqual(results[0], { id: person.id, name: 'Tester' })
 
-    await people.remove(person.id)
+    await service.remove(person.id!)
   })
 
-  testSuite(app, errors, 'people')
-  testSuite(app, errors, 'people-customid', 'customid')
+  testSuite(service as any, 'id')
+  testSuite(customIdService as any, 'customid')
 })

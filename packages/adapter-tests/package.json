@@ -1,6 +1,6 @@
 {
   "name": "@wingshq/adapter-tests",
-  "version": "5.0.8",
+  "version": "0.0.0",
   "description": "Wings test suite for consistent, reliable database adapters",
   "homepage": "https://wings.codes",
   "keywords": [
@@ -54,6 +54,9 @@
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "dependencies": {
+    "@wingshq/adapter-commons": "^0.0.0"
   },
   "devDependencies": {
     "@types/node": "^20.4.2",

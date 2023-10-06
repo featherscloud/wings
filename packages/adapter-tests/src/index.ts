@@ -1,16 +1,14 @@
 /* eslint-disable no-console */
-import { describe, it } from 'node:test'
+import { describe, it, after } from 'node:test'
 import basicTests from './basic'
-import { AdapterTestName } from './declarations'
+import { AdapterTestName, Person } from './declarations'
 import methodTests from './methods'
 import syntaxTests from './syntax'
+import { AdapterInterface } from '@wingshq/adapter-commons'
 
-export const adapterTests = (testNames: AdapterTestName[]) => {
-  return (app: any, errors: any, serviceName: any, idProp = 'id') => {
-    if (!serviceName) {
-      throw new Error('You must pass a service name')
-    }
-
+export const adapterTests =
+  (testNames: AdapterTestName[]) =>
+  <Service extends AdapterInterface<Person>>(service: Service, idProp: string) => {
     const skippedTests: AdapterTestName[] = []
     const allTests: AdapterTestName[] = []
 
@@ -27,7 +25,9 @@ export const adapterTests = (testNames: AdapterTestName[]) => {
       its(name, runner)
     }
 
-    describe(`Adapter tests for '${serviceName}' service with '${idProp}' id property`, () => {
+    describe(`Adapter tests for '${
+      service?.constructor?.name || 'unknown'
+    }' service with '${idProp}' id property`, () => {
       after(() => {
         testNames.forEach((name) => {
           if (!allTests.includes(name)) {
@@ -42,11 +42,10 @@ export const adapterTests = (testNames: AdapterTestName[]) => {
         }
       })
 
-      basicTests(test, app, errors, serviceName, idProp)
-      methodTests(test, app, errors, serviceName, idProp)
-      syntaxTests(test, app, errors, serviceName, idProp)
+      basicTests(test, service, idProp)
+      methodTests(test, service, idProp)
+      syntaxTests(test, service, idProp)
     })
   }
-}
 
 export * from './declarations'
