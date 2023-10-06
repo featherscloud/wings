@@ -76,51 +76,26 @@ export class MemoryAdapter<
     const { query, filters } = this.getQuery(params)
     const { Model = this.Model } = params || {}
 
-    let values = _.values(Model)
+    let values = _.values(Model).filter(this.options.matcher(query))
     const total = values.length
-    const hasSkip = filters.$skip !== undefined
-    const hasSort = filters.$sort !== undefined
-    const hasLimit = filters.$limit !== undefined
-    const hasQuery = _.keys(query).length > 0
 
-    if (hasSort) {
+    if (filters.$sort !== undefined) {
       values.sort(this.options.sorter(filters.$sort))
     }
 
-    if (hasQuery || hasLimit || hasSkip) {
-      let skipped = 0
-      const matcher = this.options.matcher(query)
-      const matched = []
-
-      for (let index = 0, length = values.length; index < length; index++) {
-        const value = values[index]
-
-        if (hasQuery && !matcher(value, index, values)) {
-          continue
-        }
-
-        if (hasSkip && filters.$skip > skipped) {
-          skipped++
-          continue
-        }
-
-        matched.push(value)
-
-        if (hasLimit && filters.$limit === matched.length) {
-          break
-        }
-      }
-
-      values = matched
+    if (filters.$skip !== undefined) {
+      values = values.slice(filters.$skip)
     }
 
-    values = values.map((value) => _select(value, params, this.id))
+    if (filters.$limit !== undefined) {
+      values = values.slice(0, filters.$limit)
+    }
 
     const result: Paginated<Result> = {
-      total: hasQuery ? values.length : total,
-      limit: filters.$limit,
+      total,
+      limit: filters.$limit || -1,
       skip: filters.$skip || 0,
-      data: filters.$limit === 0 ? [] : values
+      data: values.map((value) => _select(value, params, this.id))
     }
 
     if (!params?.paginate) {

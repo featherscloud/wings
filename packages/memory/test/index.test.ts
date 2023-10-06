@@ -164,15 +164,53 @@ describe('Wings Memory Adapter', () => {
       age: 42
     })
 
-    const results = await service.find({
-      query: {
-        $select: ['name']
-      }
-    })
+    try {
+      const results = await service.find({
+        query: {
+          $select: ['name']
+        }
+      })
 
-    assert.deepStrictEqual(results[0], { id: person.id, name: 'Tester' })
+      assert.deepStrictEqual(results[0], { id: person.id, name: 'Tester' })
+    } finally {
+      await service.remove(person.id!)
+    }
+  })
 
-    await service.remove(person.id!)
+  it('using $limit still returns correct total', async () => {
+    for (let i = 0; i < 10; i++) {
+      await service.create({
+        name: `Tester ${i}`,
+        age: 19
+      })
+      await service.create({
+        name: `Tester ${i}`,
+        age: 20
+      })
+    }
+
+    try {
+      const results = await service.find({
+        paginate: true,
+        query: {
+          $skip: 3,
+          $limit: 5,
+          age: 19
+        }
+      })
+
+      assert.strictEqual(results.total, 10)
+      assert.strictEqual(results.skip, 3)
+      assert.strictEqual(results.limit, 5)
+    } finally {
+      await service.remove(null, {
+        query: {
+          age: {
+            $in: [19, 20]
+          }
+        }
+      })
+    }
   })
 
   testSuite(service as any, 'id')
