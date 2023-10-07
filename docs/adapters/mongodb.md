@@ -111,7 +111,7 @@ Used for [aggregation pipelines](#aggregation-pipeline).
 
 When making a [service method](/api/services.md) call, `params` can contain an`mongodb` property (for example, `{upsert: true}`) which allows modifying the options used to run the MongoDB query. The adapter will use the `collection.find` method and not the [aggregation pipeline](#aggregation-pipeline) when you use `params.mongodb`.
 
-## Transactions
+## TODO: Transactions
 
 [MongoDB Transactions](https://docs.mongodb.com/manual/core/transactions/) can be used by passing a `session` in [params.mongodb](#paramsmongodb). For example in a [hook](../hooks.md):
 
@@ -143,7 +143,7 @@ export const myHook = async (context: HookContext) => {
 
 ## Indexes
 
-Indexes and unique constraints can be added to the `Model` Promise, usually in the `getOptions` in `<service>.class`:
+For fast database performance, all of your queries should match an optimal index. For small datasets, indexes and unique constraints can be added by extending the MongoDBAdapter class and overriding the `getOptions` method:
 
 ```ts
 export const getOptions = (app: Application): MongoDBAdapterOptions => {
@@ -163,13 +163,13 @@ export const getOptions = (app: Application): MongoDBAdapterOptions => {
 
 <BlockQuote type="info">
 
-Note that creating indexes for an existing collection with many entries should be done as a separate operation instead. See the [MongoDB createIndex documentation](https://www.mongodb.com/docs/manual/reference/method/db.collection.createIndex/) for more information.
+For large datasets you should manage indexes separately. See the [MongoDB createIndex documentation](https://www.mongodb.com/docs/manual/reference/method/db.collection.createIndex/) for more information.
 
 </BlockQuote>
 
 ## Querying
 
-Additionally to the [common querying mechanism](./querying.md) this adapter also supports [MongoDB's query syntax](https://www.mongodb.com/docs/manual/tutorial/query-documents/) and the `update` method also supports MongoDB [update operators](https://www.mongodb.com/docs/manual/reference/operator/update/).
+Additionally to the [common querying mechanism](./common-query-syntax.md) this adapter also supports [MongoDB's query syntax](https://www.mongodb.com/docs/manual/tutorial/query-documents/) and the `update` method also supports MongoDB [update operators](https://www.mongodb.com/docs/manual/reference/operator/update/).
 
 ## Search
 
