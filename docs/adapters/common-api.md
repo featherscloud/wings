@@ -33,9 +33,9 @@ For database-specific options see each adapter's documentation.
 All adapters are written in TypeScript and support generics. The following generic types are available:
 
 - `Result` - The type of the result returned by the adapter's methods.
-- `Data` - The type of the data returned from `create`. Optional. Defaults to `Partial<Result>`.
-- `PatchData` - The type of the data returned from `patch`. Optional. Defaults to `Partial<Data>`.
-- `UpdateData` - The type of the data returned from `update`. Optional. Defaults to `Data`.
+- `Data` - The type of the data allowed during `create`. Optional. Defaults to `Partial<Result>`.
+- `PatchData` - The type of the data allowed for `patch`. Optional. Defaults to `Partial<Data>`.
+- `UpdateData` - The type of the data allowed for `update`. Optional. Defaults to `Data`.
 
 For basic typing, you only need to specify the `Result` type. If create requires a different type, though, you can provide that explicitly. The same goes for the other two generics. For example, this is how you would specify the types for a `Message` service which only accepts the `text` property for `create` :
 
