@@ -2,6 +2,12 @@ export const adaptersSidebar = [
 	{ text: 'Adapters Overview', link: '/adapters/' },
 	{ text: 'Database Adapter Consulting', link: '/adapters/consulting' },
 	{
+		text: 'Common API',
+		items: [
+			{ text: 'Adapter Classes', link: '/adapters/common-api' },
+		]
+	},
+	{
 		text: 'Database Adapters',
 		items: [
 			{ text: 'Sequelize', link: '/adapters/sequelize' },
