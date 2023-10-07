@@ -195,7 +195,7 @@ console.log(messages) // --> [/* second 10 messages */]
 
 ### $limit: 0 to count
 
-You can set `$limit: 0` to perform a count of the total number of records that match the query conditions. For example:
+You can set `$limit: 0` to perform a count of the total number of records that match the query conditions. Count queries always return a `Paginated` object. For example:
 
 ```ts
 // Get the total number of messages
@@ -205,7 +205,7 @@ const messages = await adapter.find({
   }
 })
 
-console.log(messages) // --> 1411 or however many exist in the database.
+console.log(messages) // --> { total: 1411, limit: 0, skip: 0, data: [] }
 ```
 
 ### params.paginate
