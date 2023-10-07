@@ -8,7 +8,7 @@ All official database adapter support a common way for querying, sorting, limiti
 
 <BlockQuote label="Note">
 
-When used via REST URLs all query values are strings and may need to be converted to the correct type.
+Depending on your framework, for queries made via REST URLs all query values will arrive strings and may need to be converted to the correct type.
 
 </BlockQuote>
 
