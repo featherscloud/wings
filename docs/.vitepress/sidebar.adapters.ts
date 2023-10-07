@@ -5,6 +5,7 @@ export const adaptersSidebar = [
 		text: 'Common API',
 		items: [
 			{ text: 'Adapter Classes', link: '/adapters/common-api' },
+			{ text: 'Query Syntax', link: '/adapters/common-query-syntax' },
 		]
 	},
 	{
