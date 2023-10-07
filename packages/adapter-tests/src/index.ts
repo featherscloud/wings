@@ -36,7 +36,7 @@ export const adapterTests =
         })
         if (skippedTests.length) {
           console.log(
-            `\nSkipped the following ${skippedTests.length} Feathers adapter test(s) out of ${allTests.length} total:`
+            `\nSkipped the following ${skippedTests.length} Wings adapter test(s) out of ${allTests.length} total:`
           )
           console.log(JSON.stringify(skippedTests, null, '  '))
         }

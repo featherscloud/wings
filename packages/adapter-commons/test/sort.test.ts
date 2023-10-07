@@ -2,7 +2,7 @@ import { describe, it, beforeEach } from 'node:test'
 import assert from 'assert'
 import { sorter } from '../src'
 
-describe('@feathersjs/adapter-commons', () => {
+describe('@wingshq/adapter-commons', () => {
   describe('sorter', () => {
     it('simple sorter', () => {
       const array = [
