@@ -28,6 +28,29 @@ The following options are available for all database adapters:
 
 For database-specific options see each adapter's documentation.
 
+### TypeScript Generics
+
+All adapters are written in TypeScript and support generics. The following generic types are available:
+
+- `Result` - The type of the result returned by the adapter's methods.
+- `Data` - The type of the data returned from `create`. Optional. Defaults to `Partial<Result>`.
+- `PatchData` - The type of the data returned from `patch`. Optional. Defaults to `Partial<Data>`.
+- `UpdateData` - The type of the data returned from `update`. Optional. Defaults to `Data`.
+
+For basic typing, you only need to specify the `Result` type. If create requires a different type, though, you can provide that explicitly. The same goes for the other two generics. For example, this is how you would specify the types for a `Message` service which only accepts the `text` property for `create` :
+
+```ts
+import { MemoryAdapter } from '@wingshq/memory'
+
+type Message = {
+  id: number
+  text: string
+}
+type MessageData = Pick<Message, 'text'>
+
+const adapter = new MemoryAdapter<Message, MessageData>({})
+```
+
 ## Adapter Methods
 
 This section describes the methods implemented for all adapters.
@@ -193,21 +216,6 @@ const messages = await adapter.find({
 console.log(messages) // --> [/* second 10 messages */]
 ```
 
-### $limit: 0 to count
-
-You can set `$limit: 0` to perform a count of the total number of records that match the query conditions. Count queries always return a `Paginated` object. For example:
-
-```ts
-// Get the total number of messages
-const messages = await adapter.find({
-  query: {
-    $limit: 0
-  }
-})
-
-console.log(messages) // --> { total: 1411, limit: 0, skip: 0, data: [] }
-```
-
 ### params.paginate
 
 Use `params.paginate = true` to return a pagination object instead of an array. The object will have the following shape:
@@ -259,6 +267,26 @@ For most datasets the extra count query is not an issue. For decently large data
 - Do not enable `params.paginate` for the request.
 
 For extremely large datasets, consider not showing the total number of records in the UI to avoid the need for a count query.
+
+</BlockQuote>
+
+### $limit: 0 to count
+
+With `paginate: true`, You can set `query.$limit` to `0` to perform a count of the total number of records that match the query conditions. Count queries always return a `Paginated` object. For example:
+
+```ts
+// Get the total number of messages
+const messages = await adapter.find({
+  query: { $limit: 0 },
+  paginate: true
+})
+
+console.log(messages) // --> { total: 1411, limit: 0, skip: 0, data: [] }
+```
+
+<BlockQuote type="info" label="note">
+
+If you forget to set `paginate: true` when using `$limit: 0`, the query will return an empty array.
 
 </BlockQuote>
 
