@@ -32,7 +32,7 @@ adapter.find({
 
 <BlockQuote>
 
-Perform a count query by setting `query.$limit` to `0`. This will only run a (fast) count query against the database and return a page object with the `total` and an empty `data` array.
+Perform a count query by setting `query.$limit` to `0` and `params.paginate` to `true`. This will only run a (fast) count query against the database and return a page object with the `total` and an empty `data` array.
 
 </BlockQuote>
 
