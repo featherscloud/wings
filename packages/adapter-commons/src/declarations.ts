@@ -2,7 +2,7 @@ export type Id = number | string
 export type NullableId = Id | null
 
 /**
- * The object returned from `.find` call by standard database adapters
+ * The object returned from `.find` call by standard database adapters, when `paginate: true` is set.
  */
 export interface Paginated<T> {
   total: number
