@@ -1,27 +1,27 @@
-# Feathers Adapter Commons
+# Wings Adapter Commons
 
-[![CI](https://github.com/feathersjs/feathers/workflows/Node.js%20CI/badge.svg)](https://github.com/feathersjs/feathers/actions?query=workflow%3A%22Node.js+CI%22)
-[![Download Status](https://img.shields.io/npm/dm/@feathersjs/adapter-commons.svg?style=flat-square)](https://www.npmjs.com/package/@feathersjs/adapter-commons)
+[![CI](https://github.com/wingshq/wings/workflows/Node.js%20CI/badge.svg)](https://github.com/wingshq/wings/actions?query=workflow%3A%22Node.js+CI%22)
+[![Download Status](https://img.shields.io/npm/dm/@wingshq/adapter-commons.svg?style=flat-square)](https://www.npmjs.com/package/@wingshq/adapter-commons)
 [![Discord](https://badgen.net/badge/icon/discord?icon=discord&label)](https://discord.gg/qa8kez8QBx)
 
-> Shared utility functions for Feathers adatabase adapters
+> Shared utility functions for Wings database adapters
 
 ## Installation
 
 ```
-npm install @feathersjs/adapter-commons --save
+npm install @wingshq/adapter-commons --save
 ```
 
 ## Documentation
 
-Refer to the [Feathers database adapter documentation](https://feathersjs.com/api/databases/common.html) for more details.
+Refer to the [Wings database adapter documentation](https://wings.codes/adapters/common-api.html) for more details.
 
 ## Authors
 
-[Feathers contributors](https://github.com/feathersjs/adapter-commons/graphs/contributors)
+[Wings contributors](https://github.com/wingshq/wings/graphs/contributors)
 
 ## License
 
-Copyright (c) 2023 [Feathers contributors](https://github.com/feathersjs/feathers/graphs/contributors)
+Copyright (c) 2023 [Wings contributors](https://github.com/wingshq/wings/graphs/contributors)
 
 Licensed under the [MIT license](LICENSE).

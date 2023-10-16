@@ -4,7 +4,9 @@
   "description": "Wings shared database adapter utility functions",
   "homepage": "https://wings.codes",
   "keywords": [
-    "feathers"
+    "feathers",
+    "wings",
+    "database"
   ],
   "license": "MIT",
   "funding": {
@@ -19,7 +21,7 @@
   "author": {
     "name": "Wings contributor",
     "email": "hello@feathersjs.com",
-    "url": "https://feathersjs.com"
+    "url": "https://wings.codes"
   },
   "contributors": [],
   "bugs": {

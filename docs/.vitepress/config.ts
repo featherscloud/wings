@@ -16,6 +16,10 @@ export default defineConfig({
 			{ text: 'Frameworks', link: '/frameworks/' },
 		],
 
+		search: {
+			provider: 'local',
+		},
+
 		sidebar: {
 			'/adapters/': adaptersSidebar,
 			'/databases/': databasesSidebar,

@@ -7,7 +7,17 @@
     "preview": "vitepress preview"
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.16",
+    "postcss": "^8.4.31",
+    "tailwindcss": "^3.3.3",
+    "unplugin-vue-components": "^0.25.2",
     "vitepress": "1.0.0-rc.20",
     "vue": "^3.3.4"
+  },
+  "postcss": {
+    "plugins": {
+      "tailwindcss": {},
+      "autoprefixer": {}
+    }
   }
 }

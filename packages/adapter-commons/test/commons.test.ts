@@ -2,7 +2,7 @@ import { describe, it } from 'node:test'
 import assert from 'assert'
 import { select } from '../src'
 
-describe('@feathersjs/adapter-commons', () => {
+describe('@wingshq/adapter-commons', () => {
   describe('select', () => {
     it('select', () => {
       const selector = select({

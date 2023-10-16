@@ -12,7 +12,7 @@
 //   'remove'
 // ]
 
-// describe('@feathersjs/adapter-commons/service', () => {
+// describe('@wingshq/adapter-commons/service', () => {
 //   describe('works when methods exist', () => {
 //     METHODS.forEach((method) => {
 //       it(`${method}`, () => {

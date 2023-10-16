@@ -4,7 +4,8 @@
   "description": "Wings test suite for consistent, reliable database adapters",
   "homepage": "https://wings.codes",
   "keywords": [
-    "feathers"
+    "feathers",
+    "wings"
   ],
   "license": "MIT",
   "funding": {
@@ -19,7 +20,7 @@
   "author": {
     "name": "Wings contributor",
     "email": "hello@feathersjs.com",
-    "url": "https://feathersjs.com"
+    "url": "https://wings.codes"
   },
   "contributors": [],
   "bugs": {

@@ -2,20 +2,27 @@ export const adaptersSidebar = [
 	{ text: 'Adapters Overview', link: '/adapters/' },
 	{ text: 'Database Adapter Consulting', link: '/adapters/consulting' },
 	{
+		text: 'Common API',
+		items: [
+			{ text: 'Adapter Classes', link: '/adapters/common-api' },
+			{ text: 'Query Syntax', link: '/adapters/common-query-syntax' },
+		]
+	},
+	{
 		text: 'Database Adapters',
 		items: [
-			{ text: 'Sequelize', link: '/adapters/sequelize' },
+			{ text: 'Cassandra', link: '/adapters/cassandra' },
+			{ text: 'Elastic Search', link: '/adapters/elastic-search' },
 			{ text: 'Knex', link: '/adapters/knex' },
 			{ text: 'Kysely', link: '/adapters/kysely' },
-			{ text: 'Cassandra', link: '/adapters/cassandra' },
 			{ text: 'Memory', link: '/adapters/memory' },
-			{ text: 'Elastic Search', link: '/adapters/elastic-search' },
-			{ text: 'RethinkDB', link: '/adapters/rethinkdb' },
+			{ text: 'Mongoose', link: '/adapters/mongoose' },
+			{ text: 'MongoDB', link: '/adapters/mongodb' },
 			{ text: 'NeDB', link: '/adapters/nedb' },
 			{ text: 'Objection', link: '/adapters/objection' },
 			{ text: 'Prisma', link: '/adapters/prisma' },
-			{ text: 'Mongoose', link: '/adapters/mongoose' },
-			{ text: 'MongoDB', link: '/adapters/mongodb' },
+			{ text: 'RethinkDB', link: '/adapters/rethinkdb' },
+			{ text: 'Sequelize', link: '/adapters/sequelize' }
 		],
 	},
 	{
