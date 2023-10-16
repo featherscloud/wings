@@ -10,6 +10,14 @@
 
 Wings allows integrating different databases through a unified interface into any TypeScript or JavaScript application.
 
+# Contributing
+
+To generate a new adapter clone this repository and run
+
+```bash
+npm run generate:adapter
+```
+
 # License
 
 Copyright (c) 2023 [Feathers contributors](https://github.com/feathersjs/feathers/graphs/contributors)

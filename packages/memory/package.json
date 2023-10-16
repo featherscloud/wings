@@ -3,8 +3,6 @@
   "description": "Wings adapter for an in memory datastore",
   "version": "0.0.0",
   "homepage": "https://wings.codes",
-  "main": "lib/",
-  "types": "lib/",
   "keywords": [
     "wings",
     "wings-adapter",
@@ -33,7 +31,6 @@
     "CHANGELOG.md",
     "LICENSE",
     "README.md",
-    "_templates/**",
     "src/**",
     "lib/**",
     "esm/**"
