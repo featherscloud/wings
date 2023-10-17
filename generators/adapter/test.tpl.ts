@@ -10,6 +10,7 @@ import { adapterTests, Person } from '@wingshq/adapter-tests'
 import { ${uppername}Adapter } from '../src'
 
 const testSuite = adapterTests([
+  '.id',
   '.options',
   '.get',
   '.get + $select',
