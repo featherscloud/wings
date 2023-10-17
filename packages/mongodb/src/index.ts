@@ -8,7 +8,8 @@ import {
   CountDocumentsOptions,
   ReplaceOptions,
   Document,
-  MongoError
+  MongoError,
+  Filter
 } from 'mongodb'
 import {
   AdapterInterface,
@@ -28,7 +29,11 @@ export interface MongodbOptions extends AdapterOptions {
   useEstimatedDocumentCount?: boolean
 }
 
-export interface MongodbParams<T> extends AdapterParams<T> {
+export type MongodbSettings = Partial<Omit<MongodbOptions, 'Model'>> & Pick<MongodbOptions, 'Model'>
+
+export type MongodbQuery<T> = Filter<T> & Pick<AdapterQuery<T>, '$select' | '$sort' | '$limit' | '$skip'>
+
+export interface MongodbParams<T> extends AdapterParams<MongodbQuery<T>> {
   Model?: Collection | Promise<Collection>
   pipeline?: Document[]
   mongodb?:
@@ -64,7 +69,14 @@ export class MongodbAdapter<
   Params extends MongodbParams<Result> = MongodbParams<Result>
 > implements AdapterInterface<Result, Data, PatchData, UpdateData, MongodbOptions, Params>
 {
-  constructor(public options: MongodbOptions) {}
+  options: MongodbOptions
+
+  constructor(settings: MongodbSettings) {
+    this.options = {
+      id: '_id',
+      ...settings
+    }
+  }
 
   get id() {
     return this.options.id
@@ -163,19 +175,16 @@ export class MongodbAdapter<
     return pipeline
   }
 
-  getSelect(select: (keyof Result)[] | { [key: string]: number }) {
-    if (Array.isArray(select)) {
-      if (!select.includes(this.id as any)) {
-        select = [this.id as any, ...select]
-      }
-      return select.reduce<{ [key: string]: number }>(
-        (value, name) => ({
-          ...value,
-          [name]: 1
-        }),
-        {}
-      )
-    }
+  getSelect(_select: (keyof Result)[] | { [key: string]: number }) {
+    const select = Array.isArray(_select)
+      ? _select.reduce<{ [key: string]: number }>(
+          (value, name) => ({
+            ...value,
+            [name]: 1
+          }),
+          {}
+        )
+      : _select
 
     if (!select[this.id]) {
       return {
@@ -272,8 +281,8 @@ export class MongodbAdapter<
       .catch(errorHandler)
   }
 
-  create(data: Data[], params?: Params): Promise<Result[]>
-  create(data: Data, params?: Params): Promise<Result>
+  async create(data: Data[], params?: Params): Promise<Result[]>
+  async create(data: Data, params?: Params): Promise<Result>
   async create(data: Data | Data[], params?: Params): Promise<Result[] | Result> {
     const writeOptions = params?.mongodb
     const model = await this.getModel(params)

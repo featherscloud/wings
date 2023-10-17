@@ -46,9 +46,9 @@ export class ${uppername}Adapter<
    return { id }
   }
 
-  create(data: Data[], params?: Params): Promise<Result[]>
-  create(data: Data, params?: Params): Promise<Result>
-  create(data: Data | Data[], params?: Params): Promise<Result[]> | Promise<Result> {
+  async create(data: Data[], params?: Params): Promise<Result[]>
+  async create(data: Data, params?: Params): Promise<Result>
+  async create(data: Data | Data[], params?: Params): Promise<Result[]> | Promise<Result> {
     if (Array.isArray(data)) {
       return Promise.all(data.map((current) => this.create(current, params)))
     }

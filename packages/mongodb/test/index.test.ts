@@ -72,7 +72,6 @@ describe('Wings mongodb Adapter', () => {
   const client = mongod.then((server) => MongoClient.connect(server.getUri()))
   const db = client.then((client) => client.db('feathers-test'))
   const peopleAdapter = new MongodbAdapter<Person>({
-    id: '_id',
     Model: db.then(async (db) => {
       const collection = db.collection('people')
       await collection.createIndex({ name: 1 }, { partialFilterExpression: { team: 'blue' } })
@@ -148,7 +147,6 @@ describe('Wings mongodb Adapter', () => {
     it('queries for ObjectId in find', async () => {
       const person = await peopleAdapter.create({ name: 'Coerce' })
       const results = await peopleAdapter.find({
-        paginate: false,
         query: {
           _id: new ObjectId(person._id)
         }
@@ -173,7 +171,6 @@ describe('Wings mongodb Adapter', () => {
 
     it('sorts with default behavior without collation param', async () => {
       const results = await peopleAdapter.find({
-        paginate: false,
         query: { $sort: { name: -1 } }
       })
 
@@ -182,7 +179,6 @@ describe('Wings mongodb Adapter', () => {
 
     it('sorts using collation param if present', async () => {
       const results = await peopleAdapter.find({
-        paginate: false,
         query: { $sort: { name: -1 } },
         mongodb: { collation: { locale: 'en', strength: 1 } }
       })
@@ -282,7 +278,6 @@ describe('Wings mongodb Adapter', () => {
       })
 
       const result = await peopleAdapter.find({
-        paginate: false,
         query: {},
         mongodb: { hint: { name: 1 } }
       })
@@ -307,7 +302,6 @@ describe('Wings mongodb Adapter', () => {
     }
 
     const todoAdapter = new MongodbAdapter<Todo>({
-      id: '_id',
       Model: db.then((db) => db.collection('todos'))
     })
 
@@ -330,7 +324,7 @@ describe('Wings mongodb Adapter', () => {
 
     it('assumes the feathers stage runs before all if it is not explicitly provided in pipeline', async () => {
       const result = await todoAdapter.find({
-        query: { name: /dishes/ as any, $sort: { name: 1 } },
+        query: { name: /dishes/, $sort: { name: 1 } },
         pipeline: [
           {
             $lookup: {
@@ -341,8 +335,7 @@ describe('Wings mongodb Adapter', () => {
             }
           },
           { $unwind: { path: '$person' } }
-        ],
-        paginate: false
+        ]
       })
       assert.deepEqual(result[0].person, alice)
       assert.deepEqual(result[1].person, bob)
@@ -364,8 +357,7 @@ describe('Wings mongodb Adapter', () => {
             }
           },
           { $unwind: { path: '$person' } }
-        ],
-        paginate: false
+        ]
       })
       assert.deepEqual(result[0].person, bob)
       assert.equal(result.length, 1)
