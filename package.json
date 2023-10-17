@@ -24,7 +24,7 @@
   },
   "workspaces": [
     "packages/*",
-    "docs/*"
+    "docs/"
   ],
   "scripts": {
     "publish": "lerna publish --force-publish && git commit -am \"chore: Update changelog\" && git push origin",
