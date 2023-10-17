@@ -18,13 +18,21 @@ export interface AdapterOptions {
   id: string
 }
 
+/**
+ * The standard interface for an adapter query
+ */
 export type AdapterQuery<O> = {
   $limit?: number
   $skip?: number
   $select?: (keyof O)[]
   $sort?: { [k in keyof O]?: 1 | -1 }
+  $or?: QueryProperties<O>[] | readonly QueryProperties<O>[]
+  $and?: QueryProperties<O>[] | readonly QueryProperties<O>[]
 } & QueryProperties<O>
 
+/**
+ * Standard properties for querying an individual property
+ */
 export type QueryProperty<T> = {
   $in?: T[]
   $nin?: T[]
@@ -35,6 +43,9 @@ export type QueryProperty<T> = {
   $ne?: T
 }
 
+/**
+ * Standard interface for querying multiple properties
+ */
 export type QueryProperties<O> = {
   [k in keyof O]?: O[k] | QueryProperty<O[k]>
 }
@@ -42,8 +53,8 @@ export type QueryProperties<O> = {
 /**
  * Additional `params` that can be passed to an adapter service method call.
  */
-export interface AdapterParams<T> {
-  query?: AdapterQuery<T>
+export interface AdapterParams<Q> {
+  query?: Q
 }
 
 export interface AdapterInterface<
@@ -52,7 +63,7 @@ export interface AdapterInterface<
   PatchData = Partial<Data>,
   UpdateData = Result,
   Options extends AdapterOptions = AdapterOptions,
-  Params = AdapterParams<Result>
+  Params = AdapterParams<any>
 > {
   id: string
   options: Options

@@ -1,0 +1,66 @@
+{
+  "name": "@wingshq/mongodb",
+  "description": "An adapter for MongoDB using the plain MongoDB driver",
+  "version": "0.0.0",
+  "homepage": "https://wings.codes",
+  "keywords": [
+    "wings",
+    "wings-adapter"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/wingshq/wings.git",
+    "directory": "packages/mongodb"
+  },
+  "author": {
+    "name": "Wings contributors",
+    "email": "hello@feathersjs.com",
+    "url": "https://feathersjs.com"
+  },
+  "contributors": [],
+  "bugs": {
+    "url": "https://github.com/wingshq/wings/issues"
+  },
+  "engines": {
+    "node": ">= 20"
+  },
+  "files": [
+    "CHANGELOG.md",
+    "LICENSE",
+    "README.md",
+    "src/**",
+    "lib/**",
+    "esm/**"
+  ],
+  "module": "./esm/index.js",
+  "main": "./lib/index.js",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./esm/index.js",
+      "require": "./lib/index.js",
+      "types": "./src/index.ts"
+    }
+  },
+  "scripts": {
+    "prepublish": "npm run compile",
+    "compile:lib": "shx rm -rf lib/ && tsc --module commonjs",
+    "compile:esm": "shx rm -rf esm/ && tsc --module es2020 --outDir esm",
+    "compile": "npm run compile:lib && npm run compile:esm",
+    "test": "npm run compile && node --require ts-node/register --test test/**.test.ts"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "dependencies": {
+    "@feathersjs/commons": "^5.0.11",
+    "@feathersjs/errors": "^5.0.11",
+    "@wingshq/adapter-commons": "^0.0.0"
+  },
+  "devDependencies": {
+    "@wingshq/adapter-tests": "^0.0.0",
+    "mongodb": "^6.1.0",
+    "mongodb-memory-server": "^9.0.1"
+  }
+}

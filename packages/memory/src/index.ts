@@ -5,6 +5,7 @@ import {
   AdapterInterface,
   AdapterOptions,
   AdapterParams,
+  AdapterQuery,
   Id,
   Paginated,
   select,
@@ -22,13 +23,15 @@ export interface MemoryOptions<T = any> extends AdapterOptions {
   sorter?: (sort: any) => any
 }
 
+export type MemorySettings<T> = Partial<MemoryOptions<T>>
+
 const _select = (data: any, params: any, ...args: string[]) => {
   const base = select(params, ...args)
 
   return base(JSON.parse(JSON.stringify(data)))
 }
 
-export interface MemoryParams<T> extends AdapterParams<T> {
+export interface MemoryParams<T> extends AdapterParams<AdapterQuery<T>> {
   Model?: MemoryStore<T>
 }
 
@@ -44,7 +47,7 @@ export class MemoryAdapter<
   Model: MemoryStore<Result>
   _uId: number
 
-  constructor(options: Partial<MemoryOptions<Result>> = {}) {
+  constructor(options: MemorySettings<Result> = {}) {
     this.options = {
       id: 'id',
       matcher: sift,
