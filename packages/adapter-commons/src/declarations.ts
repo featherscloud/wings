@@ -23,6 +23,8 @@ export type AdapterQuery<O> = {
   $skip?: number
   $select?: (keyof O)[]
   $sort?: { [k in keyof O]?: 1 | -1 }
+  $or?: QueryProperties<O>[] | readonly QueryProperties<O>[]
+  $and?: QueryProperties<O>[] | readonly QueryProperties<O>[]
 } & QueryProperties<O>
 
 export type QueryProperty<T> = {

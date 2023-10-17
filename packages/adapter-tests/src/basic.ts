@@ -1,4 +1,4 @@
-import { describe, it } from 'node:test'
+import { describe } from 'node:test'
 import assert from 'assert'
 import { AdapterInterface } from '@wingshq/adapter-commons'
 import { AdapterBasicTest, Person } from './declarations'
@@ -9,7 +9,7 @@ export default function <Service extends AdapterInterface<Person>>(
   idProp: string
 ) {
   describe('Basic Functionality', () => {
-    it('.id', () => {
+    test('.id', () => {
       assert.strictEqual(service.id, idProp, 'id property is set to expected name')
     })
 
