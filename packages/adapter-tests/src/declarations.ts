@@ -9,7 +9,7 @@ export type AdapterTestName = AdapterBasicTestName | AdapterMethodsTestName | Ad
 export type Person = {
   [key: string]: any
   name: string
-  age: number
+  age: number | null
   created?: boolean
 }
 
