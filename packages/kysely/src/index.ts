@@ -114,7 +114,8 @@ export class KyselyAdapter<
   createQuery(options: KyselyOptions<Tables>, filters: any, query: any) {
     const q = this.startSelectQuery(options, filters)
     const qWhere = this.applyWhere(q, query)
-    const qLimit = filters.$limit ? qWhere.limit(filters.$limit) : qWhere
+    // if limit isn't provided but skip is, set limit to 10. Really, people should be specific in their query limit
+    const qLimit = filters.$limit ? qWhere.limit(filters.$limit) : filters.$skip ? qWhere.limit(10) : qWhere
     const qSkip = filters.$skip ? qLimit.offset(filters.$skip) : qLimit
     const qSorted = this.applySort(qSkip as any, filters)
     return qSorted
