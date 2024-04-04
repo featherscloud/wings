@@ -19,7 +19,7 @@ const testSuite = adapterTests([
   // '.get + id + query id',
   // '.find',
   // '.find + paginate + query',
-  '.find + $and',
+  // '.find + $and',
   // '.find + $and + $or',
   // '.remove',
   // '.remove + $select',
@@ -32,7 +32,7 @@ const testSuite = adapterTests([
   // '.update + id + query',
   // '.update + NotFound',
   // '.update + id + query id',
-  // '.update + query + NotFound',
+  '.update + query + NotFound'
   // '.patch',
   // '.patch + $select',
   // '.patch + id + query',
@@ -76,7 +76,12 @@ interface Tables {
 
 const db = new Kysely<Tables>({ dialect })
 
-const peopleAdapter = new KyselyAdapter<Tables, Person>({ Model: db, name: 'people', id: 'id' })
+const peopleAdapter = new KyselyAdapter<Tables, Person>({
+  Model: db,
+  name: 'people',
+  id: 'id',
+  dialectType: 'sqlite'
+})
 
 describe('Wings kysely Adapter', () => {
   before(async () => {
@@ -85,7 +90,7 @@ describe('Wings kysely Adapter', () => {
       .addColumn('id', 'integer', (col) => col.primaryKey())
       .addColumn('name', 'varchar', (col) => col.notNull())
       .addColumn('age', 'integer', (col) => col.notNull())
-      .addColumn('created_at', 'boolean')
+      .addColumn('created', 'boolean')
       .execute()
   })
 

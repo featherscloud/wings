@@ -52,6 +52,7 @@ export interface KyselyOptions<Tables> extends AdapterOptions {
    * The table name
    */
   name: TableExpression<Tables, keyof Tables>
+  dialectType?: 'sqlite'
 }
 
 export type KyselyQueryProperty<Q> = {
@@ -105,7 +106,7 @@ export class KyselyAdapter<
     const { $skip, $sort, $limit, $select, ...query } = params?.query || {}
 
     return {
-      query: query as KyselyQuery<Result>,
+      query: this.convertValues(query) as KyselyQuery<Result>,
       filters: { $skip, $sort, $limit, $select }
     }
   }
@@ -143,33 +144,21 @@ export class KyselyAdapter<
   applyWhere<Q extends Record<string, any>>(q: Q, query: KyselyQuery<Result>) {
     // loop through params and call the where filters
     return Object.entries(query).reduce((q, [key, value]: any) => {
-      // if (key === '$or') {
-      //   return value.reduce((q: Q, subParams: Query) => {
-      //     return q.orWhere((subQ: Q) => this.applyWhere(subQ, subParams))
-      //   }, q)
-      // } else
       if (['$and', '$or'].includes(key)) {
-        return q.where((qb: any) => {
-          return this.handleAndOr(qb, key, value)
+        return q.where((eb: any) => {
+          return this.handleAndOr(eb, key, value)
         })
       } else if (_.isObject(value)) {
         // loop through OPERATORS and apply them
         const qOperators = Object.entries(OPERATORS).reduce((q, [operator, op]) => {
           if (value && Object.prototype.hasOwnProperty.call(value, operator)) {
-            const val = value[operator]
-            if (val === null) {
-              const nullOperator = operator === '$ne' ? 'is not' : 'is'
-              return q.where(key, nullOperator, val)
-            } else {
-              return q.where(key, op, value[operator])
-            }
+            return q.where(key, op, value[operator])
           }
           return q
         }, q)
         return qOperators
       } else {
-        if (value === null) return q.where(key, 'is', value)
-        else return q.where(key, '=', value)
+        return q.where(key, '=', value)
       }
     }, q)
   }
@@ -182,37 +171,28 @@ export class KyselyAdapter<
     return method(subs)
   }
 
-  handleSubQuery(qb: any, query: KyselyQuery<Result>): any {
-    return qb.and(
+  handleSubQuery(eb: any, query: KyselyQuery<Result>): any {
+    return eb.and(
       Object.entries(query).map(([key, value]: any) => {
         if (['$and', '$or'].includes(key)) {
-          return this.handleAndOr(qb, key, value)
+          return this.handleAndOr(eb, key, value)
         } else if (_.isObject(value)) {
           // loop through OPERATORS and apply them
-          return qb.and(
+          return eb.and(
             Object.entries(OPERATORS)
               .filter(([operator, _op]) => {
                 return value && Object.prototype.hasOwnProperty.call(value, operator)
               })
               .map(([operator, op]) => {
                 const val = value[operator]
-                return this.whereCompare(qb, key, op, val)
+                return eb(key, op, val)
               })
           )
         } else {
-          return this.whereCompare(qb, key, '=', value)
+          return eb(key, '=', value)
         }
       })
     )
-  }
-
-  whereCompare(qb: any, key: string, operator: any, value: any) {
-    if (value === null) {
-      const nullOperator = operator === '$ne' ? 'is not' : 'is'
-      return qb.cmpr(key, nullOperator, value)
-    } else {
-      return qb.cmpr(key, operator, value)
-    }
   }
 
   applySort<Q extends SelectQueryBuilder<any, string, Record<string, any>>>(q: Q, filters: any) {
@@ -233,6 +213,17 @@ export class KyselyAdapter<
     return keys.reduce((q: any, key) => {
       return q.returning(`${key} as ${key}`)
     }, q.returningAll())
+  }
+
+  convertValues<D>(data: D) {
+    if (this.options.dialectType !== 'sqlite') return data
+
+    // convert booleans to 0 or 1 for SQLite
+    return Object.entries(data as Record<string, any>).reduce((data, [key, value]) => {
+      if (typeof value === 'boolean') return { ...data, [key]: value ? 1 : 0 }
+
+      return data
+    }, data)
   }
 
   async find(params: Params & { paginate: true }): Promise<Paginated<Result>>
@@ -265,11 +256,11 @@ export class KyselyAdapter<
 
   async get(id: Id, params?: Params): Promise<Result> {
     const { filters, query } = this.getQuery(params) as any
-    const idInQuery = query?.[this.id]
 
     if (!id && id !== null && !query[this.id] && query[this.id] !== null)
       throw new NotFound(`No record found for id ${id}`)
 
+    const idInQuery = query?.[this.id]
     if (id != null && idInQuery != null && id !== idInQuery) throw new NotFound()
 
     const q = this.startSelectQuery(this.options, filters)
@@ -295,9 +286,12 @@ export class KyselyAdapter<
     const isArray = Array.isArray(data)
     const $select: any = filters.$select?.length ? filters.$select.concat(idField) : []
 
-    const q = Model.insertInto(name as any).values(data as any)
+    const convertedData: any = isArray ? data.map((i) => this.convertValues(i)) : this.convertValues(data)
+    const q = Model.insertInto(name as any).values(convertedData as any)
 
-    const qReturning = this.applyReturning(q, Object.keys(data as Record<string, any>))
+    const keys = isArray ? Object.keys(convertedData[0]) : Object.keys(convertedData)
+
+    const qReturning = this.applyReturning(q, keys)
 
     const request = isArray ? qReturning.execute() : qReturning.executeTakeFirst()
 
@@ -318,6 +312,10 @@ export class KyselyAdapter<
   async update(id: Id, _data: UpdateData, params?: Params): Promise<Result> {
     if (id === null || Array.isArray(_data))
       throw new BadRequest("You can not replace multiple instances. Did you mean 'patch'?")
+
+    const query: any = (params || {}).query
+    const idInQuery = query?.[this.id]
+    if (id != null && idInQuery != null && id !== idInQuery) throw new NotFound()
 
     const data = _.omit(_data, this.id)
     const oldData = await this.get(id, params)
@@ -376,7 +374,7 @@ export class KyselyAdapter<
     const { Model = this.options.Model } = params || {}
 
     const q = Model.deleteFrom(name as any)
-    const convertedQuery = id === null ? params?.query : { [this.id]: id }
+    const convertedQuery = this.convertValues(id === null ? params.query : { [this.id]: id })
     const qWhere = this.applyWhere(q as any, convertedQuery as any)
     const request = id === null ? qWhere.execute() : qWhere.executeTakeFirst()
     try {
