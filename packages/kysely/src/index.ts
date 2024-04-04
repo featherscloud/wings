@@ -265,9 +265,12 @@ export class KyselyAdapter<
 
   async get(id: Id, params?: Params): Promise<Result> {
     const { filters, query } = this.getQuery(params) as any
+    const idInQuery = query?.[this.id]
 
     if (!id && id !== null && !query[this.id] && query[this.id] !== null)
       throw new NotFound(`No record found for id ${id}`)
+
+    if (id != null && idInQuery != null && id !== idInQuery) throw new NotFound()
 
     const q = this.startSelectQuery(this.options, filters)
     const qWhere = this.applyWhere(q, { [this.id]: id, ...query })
@@ -373,7 +376,7 @@ export class KyselyAdapter<
     const { Model = this.options.Model } = params || {}
 
     const q = Model.deleteFrom(name as any)
-    const convertedQuery = id === null ? params.query : { [this.id]: id }
+    const convertedQuery = id === null ? params?.query : { [this.id]: id }
     const qWhere = this.applyWhere(q as any, convertedQuery as any)
     const request = id === null ? qWhere.execute() : qWhere.executeTakeFirst()
     try {

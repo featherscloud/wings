@@ -45,3 +45,4 @@ packages/**/esm
 **/build/*.tgz
 *.sqlite
 docs/.vitepress/cache
+/packages/knex/db.sqlite-journal
