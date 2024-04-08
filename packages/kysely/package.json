@@ -48,7 +48,7 @@
     "compile:lib": "shx rm -rf lib/ && tsc --module commonjs",
     "compile:esm": "shx rm -rf esm/ && tsc --module es2020 --outDir esm",
     "compile": "npm run compile:lib && npm run compile:esm",
-    "test": "npm run compile && node --require ts-node/register --test test/**.test.ts"
+    "test": "vitest"
   },
   "publishConfig": {
     "access": "public"
