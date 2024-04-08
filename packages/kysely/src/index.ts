@@ -10,18 +10,20 @@ import {
 import { _ } from '@feathersjs/commons'
 import { BadRequest, NotFound } from '@feathersjs/errors'
 
-import type {
-  ComparisonOperatorExpression,
-  DeleteQueryBuilder,
-  DeleteResult,
-  InsertQueryBuilder,
-  InsertResult,
-  Kysely,
-  SelectQueryBuilder,
-  UpdateQueryBuilder,
-  UpdateResult,
-  Transaction,
-  TableExpression
+import {
+  type ComparisonOperatorExpression,
+  type DeleteQueryBuilder,
+  type DeleteResult,
+  type InsertQueryBuilder,
+  type InsertResult,
+  type Kysely,
+  type SelectQueryBuilder,
+  type UpdateQueryBuilder,
+  type UpdateResult,
+  type Transaction,
+  type TableExpression,
+  type ReferenceExpression,
+  sql
 } from 'kysely'
 import { errorHandler } from './error-handler'
 
@@ -35,16 +37,47 @@ const OPERATORS: Record<string, ComparisonOperatorExpression> = {
   $nin: 'not in',
   $like: 'like',
   $notlike: 'not like',
-  $ilike: 'ilike',
   $ne: '!=',
   $is: 'is',
-  $isnot: 'is not'
+  $isnot: 'is not',
+  $regexp: 'regexp', // MySQL
+
+  // PostgreSQL
+  $ilike: 'ilike', // Postgres
+  $notilike: 'not ilike', // Postgres
+  $regex: '~',
+  $iregex: '~*',
+  $nregex: '!~',
+  $niregex: '!~*',
+  $search: '@@'
 }
+
+const searchOperators = ['$search', '$language', '$mode', '$rank']
+
+export type SearchMode = 'full' | 'plain' | 'phrase' | 'web'
+
+export type QuerySearchObject = {
+  $search: string
+  $language?: string
+  $mode?: SearchMode
+  $rank?: 0 | 1
+}
+
+// const CUSTOM_OPERATORS = {
+//   $options: 'imnpqx'
+// }
 
 type DeleteOrInsertBuilder =
   | DeleteQueryBuilder<any, string, DeleteResult>
   | InsertQueryBuilder<any, string, InsertResult>
   | UpdateQueryBuilder<any, string, string, UpdateResult>
+
+/**
+ * Check if a string is a valid regex option for Postgres
+ */
+export function isValidPostgresRegexOption(option: string): boolean {
+  return /^[imnpqx]*$/.test(option) && new Set(option).size === option.length
+}
 
 export interface KyselyOptions<Tables> extends AdapterOptions {
   Model: Kysely<Tables>
@@ -53,10 +86,38 @@ export interface KyselyOptions<Tables> extends AdapterOptions {
    */
   name: TableExpression<Tables, keyof Tables>
   dialectType?: 'sqlite'
+  /**
+   * The default full-text search settings for Postgres
+   */
+  search?: {
+    /**
+     * The language to use for the search. Defaults to 'english'
+     */
+    language?: string
+    /**
+     * The search mode to use. Defaults to 'web' Can be one of 'full', 'plain', 'phrase', or 'web'
+     */
+    mode?: SearchMode
+    /**
+     * Whether to include the rank in the `find` result and automatically sort results by rank. Defaults to true
+     */
+    rankByDefault?: boolean
+    /**
+     * The field to use for ranking. Defaults to 'rank'
+     */
+    rankField?: string
+  }
 }
 
+export type LikeOperator = `${string}%` | `%${string}` | `%${string}%`
+
 export type KyselyQueryProperty<Q> = {
-  $like?: `%${string}%` | `%${string}` | `${string}%`
+  $like?: LikeOperator
+  $notlike?: LikeOperator
+  $ilike?: LikeOperator
+  $notilike?: LikeOperator
+  $is?: null
+  $isnot?: null
 } & QueryProperty<Q>
 
 export type KyselyQueryProperties<T> = {
@@ -75,7 +136,8 @@ export interface KyselyParams<T, Tables> extends AdapterParams<KyselyQuery<T>> {
 }
 
 export class KyselyAdapter<
-  Tables = unknown,
+  // Tables = unknown,
+  Tables = { users: { id: number; name: string } },
   Result = unknown,
   Data = Partial<Result>,
   PatchData = Partial<Data>,
@@ -92,9 +154,18 @@ export class KyselyAdapter<
       throw new Error('No table name specified.')
     }
 
+    const searchOptions = {
+      language: 'english',
+      mode: 'web' as SearchMode,
+      rankByDefault: true,
+      rankField: 'rank',
+      ...options.search
+    }
+
     this.options = {
       id: 'id',
-      ...options
+      ...options,
+      search: searchOptions
     }
   }
 
@@ -111,19 +182,99 @@ export class KyselyAdapter<
     }
   }
 
-  createQuery(options: KyselyOptions<Tables>, filters: any, query: any) {
+  /**
+   * Searches the Feathers query object for the first field with a $search operator.
+   * If a second field with a $search operator is found, an error is thrown. Although Postgres
+   * supports multiple fields with $search operators, this adapter does not.
+   */
+  getFirstSearchField(query: KyselyQuery<Result> = {}): string {
+    let foundSearchField: string | null = null
+
+    for (const [key, value] of Object.entries(query)) {
+      if (typeof value === 'object' && value !== null && '$search' in value) {
+        if (foundSearchField) {
+          const errorMessage =
+            'More than one field with $search operator found. Only one is currently supported.'
+          throw new BadRequest(errorMessage)
+        }
+        foundSearchField = key
+      }
+    }
+    if (foundSearchField) {
+      return foundSearchField
+    }
+    return null
+  }
+
+  /**
+   * For full text search with Postgres, returns the name of the function to use based on the search mode.
+   */
+  getSearchFunction(query: QuerySearchObject) {
+    const functionsByMode = {
+      full: 'to_tsquery',
+      plain: 'plainto_tsquery',
+      phrase: 'phraseto_tsquery',
+      web: 'websearch_to_tsquery'
+    }
+    const mode = query.$mode || this.options.search.mode
+    const searchFunction = functionsByMode[mode]
+    if (!searchFunction) {
+      throw new BadRequest(`Invalid search mode: ${mode}`)
+    }
+    return searchFunction
+  }
+
+  /**
+   * For full text search with Postgres, returns the language to use based on the query.
+   */
+  getSearchLanguage(query: QuerySearchObject) {
+    return query.$language || this.options.search.language
+  }
+
+  /**
+   * For full-text search, returns the name of the field to use for ranking based on the query.
+   */
+  getRankField(query: QuerySearchObject) {
+    const shouldRank = Object.hasOwnProperty.call(query, '$rank') || this.options.search.rankByDefault
+    return shouldRank ? this.options.search.rankField : null
+  }
+
+  createQuery(options: KyselyOptions<Tables>, filters: any, query: KyselyQuery<Result> = {}) {
     const q = this.startSelectQuery(options, filters)
-    const qWhere = this.applyWhere(q, query)
+    const qWhere = this.applyWhere(q as any, query)
     // if limit isn't provided but skip is, set limit to 10. Really, people should be specific in their query limit
     const qLimit = filters.$limit ? qWhere.limit(filters.$limit) : filters.$skip ? qWhere.limit(10) : qWhere
     const qSkip = filters.$skip ? qLimit.offset(filters.$skip) : qLimit
-    const qSorted = this.applySort(qSkip as any, filters)
+    const qSorted = this.applySort(qSkip as any, filters, query)
     return qSorted
   }
 
-  startSelectQuery(options: KyselyOptions<Tables>, filters: any) {
+  startSelectQuery(options: KyselyOptions<Tables>, filters: any, query: KyselyQuery<Result> = {}) {
     const { name, id: idField, Model } = options
     const q = Model.selectFrom(name)
+
+    // check if the query contains a $search operator
+    const searchField = this.getFirstSearchField(query)
+    const searchObj: QuerySearchObject = searchField ? (query as any)[searchField] : {}
+
+    // if $select is provided, include the id field, otherwise select '*' for all fields
+    const $select = filters.$select ? filters.$select.concat(idField) : ['*']
+
+    // if $search is provided, and '*' is not already in the select statement, push the searchField to the select statement
+    if (searchField && !$select.includes('*')) $select.push(searchField)
+
+    // if $search is provided with $rank, include a virtual rank field in the select statement
+    const rankField = this.getRankField(searchObj)
+    if (rankField) {
+      const searchFn = this.getSearchFunction(searchObj)
+      const language = this.getSearchLanguage(searchObj)
+      $select.push(
+        sql<
+          [{ rank: number }]
+        >`ts_rank(${searchField}, ${searchFn}(${language}, ${searchObj.$search})) as ${rankField}`
+      )
+    }
+
     return filters.$select ? q.select(filters.$select.concat(idField)) : q.selectAll()
   }
 
@@ -132,36 +283,67 @@ export class KyselyAdapter<
     const { Model = this.options.Model } = params || {}
 
     // Start a new select query
-    const q = Model.selectFrom(this.options.name as any)
+    const q = Model.selectFrom(this.options.name)
 
     // Apply the WHERE conditions based on the query parameters
-    const qWhere = this.applyWhere(q, query)
+    const qWhere = this.applyWhere(q as any, query)
 
     // Select only the count of 'id', not all columns
     const countParams = Model.fn.count(this.id as any).as('total')
     return qWhere.select(countParams)
   }
 
-  applyWhere<Q extends Record<string, any>>(q: Q, query: KyselyQuery<Result>) {
-    // loop through params and call the where filters
-    return Object.entries(query).reduce((q, [key, value]: any) => {
-      if (['$and', '$or'].includes(key)) {
-        return q.where((eb: any) => {
-          return this.handleAndOr(eb, key, value)
+  applyWhere<Q extends SelectQueryBuilder<Tables, keyof Tables, any>, KQ extends KyselyQuery<Result>>(
+    q: Q,
+    query: KQ
+  ) {
+    let result: SelectQueryBuilder<Tables, keyof Tables, any> = q
+
+    const keys = Object.keys(query)
+    for (let i = 0; i < keys.length; i++) {
+      // lho = left hand operand
+      const lho = keys[i] as ReferenceExpression<Tables, keyof Tables>
+      const value = query[lho as keyof KQ] as any
+      if (['$and', '$or'].includes(lho as string)) {
+        result = result.where((eb: any) => {
+          return this.handleAndOr(eb, lho as string, value)
         })
       } else if (_.isObject(value)) {
-        // loop through OPERATORS and apply them
-        const qOperators = Object.entries(OPERATORS).reduce((q, [operator, op]) => {
-          if (value && Object.prototype.hasOwnProperty.call(value, operator)) {
-            return q.where(key, op, value[operator])
+        // handle $search
+        if (value.$search) {
+          const searchObj = value as QuerySearchObject
+          const searchField = lho as string
+          const searchFn = this.getSearchFunction(searchObj)
+          const language = this.getSearchLanguage(searchObj)
+
+          result = result.where(
+            sql`${searchField}`,
+            '@@',
+            sql`${searchFn}(${language}, ${searchObj.$search})`
+          )
+        }
+        // handle non-search operators
+        else {
+          const entries = Object.entries(value)
+          for (let j = 0; j < entries.length; j++) {
+            const entryArr = entries[j]
+            const $op = entryArr[0] // dollar-prefixed feathers query operator
+            const rho = entryArr[1] // right hand operand
+            const op = OPERATORS[$op] as ComparisonOperatorExpression // kysely operator
+            if (op) {
+              result = result.where(lho, op, rho)
+            } else {
+              const message = `Unknown query operator ${$op}. Valid operators are ${Object.keys(OPERATORS)}`
+              throw new BadRequest(message)
+            }
           }
-          return q
-        }, q)
-        return qOperators
+        }
       } else {
-        return q.where(key, '=', value)
+        result = result.where(lho, '=', value)
       }
-    }, q)
+    }
+
+    return result
   }
 
   handleAndOr(qb: any, key: string, value: KyselyQueryProperties<Result>[]) {
@@ -179,6 +361,7 @@ export class KyselyAdapter<
           return this.handleAndOr(eb, key, value)
         } else if (_.isObject(value)) {
           // loop through OPERATORS and apply them
+          // TODO: Add support for $search in $and and $or
           return eb.and(
             Object.entries(OPERATORS)
               .filter(([operator, _op]) => {
@@ -196,8 +379,22 @@ export class KyselyAdapter<
     )
   }
 
-  applySort<Q extends SelectQueryBuilder<any, string, Record<string, any>>>(q: Q, filters: any) {
-    return Object.entries(filters.$sort || {}).reduce(
+  applySort<Q extends SelectQueryBuilder<any, string, Record<string, any>>>(
+    q: Q,
+    filters: any = {},
+    query: KyselyQuery<Result> = {}
+  ) {
+    const searchField = this.getFirstSearchField(query)
+    const searchObject = searchField ? (query as any)[searchField] : {}
+    const rankField = searchObject ? this.getRankField(searchObject) : null
+
+    // if full text search is enabled, sort by descending rank, then any other provided sort fields
+    const sortEntries = Object.entries(filters.$sort || {})
+    if (rankField) {
+      sortEntries.unshift([rankField, -1])
+    }
+
+    return sortEntries.reduce(
       (q, [key, value]) => {
         return q.orderBy(key, value === 1 ? 'asc' : 'desc')
       },
@@ -248,7 +445,11 @@ export class KyselyAdapter<
           data: data as Result[]
         }
       }
+      const sql = await q.compile()
+      console.log(sql)
+
       const data = filters.$limit === 0 ? [] : await q.execute()
+      Object.assign(data, { sql })
       return data as Result[]
     } catch (error) {
       throw errorHandler(error, params)
@@ -265,7 +466,7 @@ export class KyselyAdapter<
     if (id != null && idInQuery != null && id !== idInQuery) throw new NotFound()
 
     const q = this.startSelectQuery(this.options, filters)
-    const qWhere = this.applyWhere(q, { [this.id]: id, ...query })
+    const qWhere = this.applyWhere(q as any, { [this.id]: id, ...query })
     try {
       const item = await qWhere.executeTakeFirst()
 
@@ -344,9 +545,10 @@ export class KyselyAdapter<
     if (id != null && query[this.id] != null) throw new NotFound()
 
     const q = Model.updateTable(name as any).set(_.omit(_data, this.id))
-    const qWhere = this.applyWhere(q, asMulti ? query : id == null ? query : { [this.id]: id, ...query })
+    const queryForRequest = asMulti ? query : id == null ? query : { [this.id]: id, ...query }
+    const qWhere = this.applyWhere(q as any, queryForRequest as any)
     const toSelect = filters.$select?.length ? filters.$select : Object.keys(_data as any)
-    const qReturning = this.applyReturning(qWhere, toSelect.concat(this.id))
+    const qReturning = this.applyReturning(qWhere as any, toSelect.concat(this.id))
 
     const request = asMulti ? qReturning.execute() : qReturning.executeTakeFirst()
     try {
