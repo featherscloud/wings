@@ -426,6 +426,7 @@ export class KyselyAdapter<
 
   async find(params: Params & { paginate: true }): Promise<Paginated<Result>>
   async find(params?: Params & { paginate?: false }): Promise<Result[]>
+  async find(params: Params): Promise<Result[]>
   async find(params?: Params & { paginate?: boolean }): Promise<Result[] | Paginated<Result>> {
     const { filters, query } = this.getQuery(params)
     const q = this.createQuery(this.options, filters, query)
@@ -443,7 +444,7 @@ export class KyselyAdapter<
           limit: filters.$limit,
           skip: filters.$skip || 0,
           data: data as Result[]
-        }
+        } as Paginated<Result>
       }
       const sql = await q.compile()
       console.log(sql)
@@ -454,6 +455,12 @@ export class KyselyAdapter<
     } catch (error) {
       throw errorHandler(error, params)
     }
+  }
+
+  async findOne(params?: Params): Promise<Result | null> {
+    const _params = { ...params, query: { ...params?.query, $limit: 1 }, paginate: false }
+    const results = await this.find(_params as Params & { paginate: false })
+    return results.length ? results[0] : null
   }
 
   async get(id: Id, params?: Params): Promise<Result> {
@@ -475,6 +482,15 @@ export class KyselyAdapter<
       return item as Result
     } catch (error) {
       throw errorHandler(error, params)
+    }
+  }
+
+  async getSilently(id: Id, params?: Params): Promise<Result | null> {
+    try {
+      return await this.get(id, params)
+    } catch (error) {
+      if (error instanceof NotFound) return null
+      throw error
     }
   }
 
