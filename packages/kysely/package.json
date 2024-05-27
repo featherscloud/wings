@@ -55,11 +55,13 @@
   },
   "dependencies": {
     "@feathersjs/errors": "^5.0.24",
-    "@wingshq/adapter-commons": "^0.0.0",
-    "better-sqlite3": "^9.4.5",
+    "@wingshq/adapter-commons": "^0.0.0"
+  },
+  "peerDependencies": {
     "kysely": "^0.27.3"
   },
   "devDependencies": {
+    "better-sqlite3": "^9.4.5",
     "@types/better-sqlite3": "^7.6.9",
     "@wingshq/adapter-tests": "^0.0.0"
   }
