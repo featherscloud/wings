@@ -1,0 +1,13 @@
+version: '3'
+services:
+  postgres:
+    container_name: wings-postgres
+    image: postgres:14-alpine
+    environment:
+      POSTGRES_USER: wings
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: app
+    ports:
+      - '5432:5432'
+    volumes:
+      - .data/pg:/var/lib/postgresql/data
